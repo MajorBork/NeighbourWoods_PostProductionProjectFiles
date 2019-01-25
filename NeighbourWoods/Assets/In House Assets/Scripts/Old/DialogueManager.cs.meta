@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: ac1e11ce8ba8d704fbb860efeff2dd8e
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - Lua: {instanceID: 0}
+  - neighbourWoodsDatabase: {fileID: 11400000, guid: ca860202aefd0a94a852e5a32140e6b0,
+      type: 2}
+  - playerActor: {instanceID: 0}
+  - TestCharacter: {instanceID: 0}
+  - TestCharacter2: {instanceID: 0}
+  - TestCharacter3: {instanceID: 0}
+  - environmentManager: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

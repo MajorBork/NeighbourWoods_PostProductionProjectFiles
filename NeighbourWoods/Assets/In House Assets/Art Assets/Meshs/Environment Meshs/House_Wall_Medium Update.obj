@@ -1,0 +1,20 @@
+# This file uses meters as units for non-parametric coordinates.
+
+mtllib House_Wall_Medium Update.mtl
+g default
+v -200.000000 0.000000 -600.000000
+v 0.000000 0.000000 -600.000000
+v -200.000000 300.000000 -600.000000
+v 0.000000 300.000000 -600.000000
+vt 0.682700 0.004284
+vt 0.828213 0.004284
+vt 0.828213 0.295311
+vt 0.682700 0.295311
+vn 0.000000 0.000000 1.000000
+vn 0.000000 0.000000 1.000000
+vn 0.000000 0.000000 1.000000
+vn 0.000000 0.000000 1.000000
+s off
+g House_Wall_Medium_LP
+usemtl initialShadingGroup
+f 1/1/1 2/2/2 4/3/3 3/4/4

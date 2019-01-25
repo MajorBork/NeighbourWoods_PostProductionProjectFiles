@@ -1,0 +1,21 @@
+# This file uses meters as units for non-parametric coordinates.
+
+mtllib Roof_Corner_Outward Update.mtl
+g default
+v -300.000000 400.000000 -600.000000
+v -700.000000 300.000000 -600.000000
+v -300.000000 300.000000 -1000.000000
+v -700.000000 300.000000 -1000.000000
+vt 0.301530 0.004903
+vt 0.008784 0.297649
+vt 0.008784 0.004903
+vt 0.301530 0.297649
+vn -0.123092 0.984732 -0.123092
+vn -0.123091 0.984732 -0.123091
+vn -0.242536 0.970143 0.000000
+vn 0.000000 0.970143 -0.242536
+s 1
+g Roof_Corner_Outward_LP
+usemtl initialShadingGroup
+f 1/1/1 4/2/2 2/3/3
+f 4/2/2 1/1/1 3/4/4

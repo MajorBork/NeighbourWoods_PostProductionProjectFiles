@@ -1,0 +1,332 @@
+fileFormatVersion: 2
+guid: e49ce2f47c0e78c4ea6f6216184b0f51
+ModelImporter:
+  serializedVersion: 23
+  fileIDToRecycleName:
+    100000: Boi
+    100002: Chest_Ctrl
+    100004: Chest_DRV
+    100006: Head_CTRL
+    100008: Hips_Ctrl
+    100010: HIps_DRV
+    100012: IK_Ball
+    100014: IK_Fingers
+    100016: IK_Fingers 1
+    100018: IK_Hock
+    100020: IK_Hock 1
+    100022: IK_Hock 2
+    100024: IK_Leg
+    100026: IK_Leg 1
+    100028: IK_Leg 2
+    100030: IK_Palm
+    100032: IK_Palm 1
+    100034: IK_Toes
+    100036: joint1
+    100038: joint2
+    100040: joint2 1
+    100042: joint21
+    100044: joint3
+    100046: joint3 1
+    100048: joint4
+    100050: joint4 1
+    100052: joint5
+    100054: joint5 1
+    100056: joint6
+    100058: joint6 1
+    100060: L_Ball
+    100062: L_Carpal_BND
+    100064: L_Ear_CTRL
+    100066: L_EarBase
+    100068: L_EarTip
+    100070: L_Elbow_BND
+    100072: L_ElbowPoint
+    100074: L_foot_ctrl
+    100076: L_frontfoot_ctrl
+    100078: L_IKBall
+    100080: L_IKHock
+    100082: L_IKLeg
+    100084: L_IKToes
+    100086: L_KneePoint
+    100088: L_Palm
+    100090: L_Palm_BND
+    100092: L_Paw_BND
+    100094: L_Pitch
+    100096: L_Pitch 1
+    100098: L_Scapular_BND
+    100100: L_Shoulder_BND
+    100102: L_Tail10_BND
+    100104: L_Tail1_BND
+    100106: L_Tail2_BND
+    100108: L_Tail3_BND
+    100110: L_Tail4_BND
+    100112: L_Tail5_BND
+    100114: L_Tail6_BND
+    100116: L_Tail7_BND
+    100118: L_Tail8_BND
+    100120: L_Tail9_BND
+    100122: L_Toes
+    100124: L_Toes 1
+    100126: L_Wrist_BND
+    100128: M_Chest_BND
+    100130: M_ChestEnd_BND
+    100132: M_Head_BND
+    100134: M_Jaw
+    100136: M_Mandible
+    100138: M_Muzzle_BND
+    100140: M_Neck_BND
+    100142: M_Nose_BND
+    100144: M_Root_BND
+    100146: M_Spine1_BND
+    100148: M_Spine2_BND
+    100150: M_Spine3_BND
+    100152: M_SpineBase_BND
+    100154: M_UpperNeck_BND
+    100156: Middle_CTRL
+    100158: MIddle_DRV
+    100160: MiddleOrient_GRP
+    100162: MiddleTrans_GRP
+    100164: Mouth_CTRL
+    100166: Neck_CTRL
+    100168: R_ball
+    100170: R_Carpal_BND
+    100172: R_Ear_CTRL
+    100174: R_EarBase
+    100176: R_EarTip
+    100178: R_Elbow_BND
+    100180: R_ElbowPoint
+    100182: R_Fingers
+    100184: R_foot_ctrl
+    100186: R_frontfoot_ctrl
+    100188: R_KneePoint
+    100190: R_Palm
+    100192: R_Palm_BND
+    100194: R_Paw_BND
+    100196: R_Pitch
+    100198: R_Pitch 1
+    100200: R_Scapular_BND
+    100202: R_Shoulder_BND
+    100204: R_toes
+    100206: R_Wrist_BND
+    100208: //RootNode
+    100210: Tail_CTRL
+    400000: Boi
+    400002: Chest_Ctrl
+    400004: Chest_DRV
+    400006: Head_CTRL
+    400008: Hips_Ctrl
+    400010: HIps_DRV
+    400012: IK_Ball
+    400014: IK_Fingers
+    400016: IK_Fingers 1
+    400018: IK_Hock
+    400020: IK_Hock 1
+    400022: IK_Hock 2
+    400024: IK_Leg
+    400026: IK_Leg 1
+    400028: IK_Leg 2
+    400030: IK_Palm
+    400032: IK_Palm 1
+    400034: IK_Toes
+    400036: joint1
+    400038: joint2
+    400040: joint2 1
+    400042: joint21
+    400044: joint3
+    400046: joint3 1
+    400048: joint4
+    400050: joint4 1
+    400052: joint5
+    400054: joint5 1
+    400056: joint6
+    400058: joint6 1
+    400060: L_Ball
+    400062: L_Carpal_BND
+    400064: L_Ear_CTRL
+    400066: L_EarBase
+    400068: L_EarTip
+    400070: L_Elbow_BND
+    400072: L_ElbowPoint
+    400074: L_foot_ctrl
+    400076: L_frontfoot_ctrl
+    400078: L_IKBall
+    400080: L_IKHock
+    400082: L_IKLeg
+    400084: L_IKToes
+    400086: L_KneePoint
+    400088: L_Palm
+    400090: L_Palm_BND
+    400092: L_Paw_BND
+    400094: L_Pitch
+    400096: L_Pitch 1
+    400098: L_Scapular_BND
+    400100: L_Shoulder_BND
+    400102: L_Tail10_BND
+    400104: L_Tail1_BND
+    400106: L_Tail2_BND
+    400108: L_Tail3_BND
+    400110: L_Tail4_BND
+    400112: L_Tail5_BND
+    400114: L_Tail6_BND
+    400116: L_Tail7_BND
+    400118: L_Tail8_BND
+    400120: L_Tail9_BND
+    400122: L_Toes
+    400124: L_Toes 1
+    400126: L_Wrist_BND
+    400128: M_Chest_BND
+    400130: M_ChestEnd_BND
+    400132: M_Head_BND
+    400134: M_Jaw
+    400136: M_Mandible
+    400138: M_Muzzle_BND
+    400140: M_Neck_BND
+    400142: M_Nose_BND
+    400144: M_Root_BND
+    400146: M_Spine1_BND
+    400148: M_Spine2_BND
+    400150: M_Spine3_BND
+    400152: M_SpineBase_BND
+    400154: M_UpperNeck_BND
+    400156: Middle_CTRL
+    400158: MIddle_DRV
+    400160: MiddleOrient_GRP
+    400162: MiddleTrans_GRP
+    400164: Mouth_CTRL
+    400166: Neck_CTRL
+    400168: R_ball
+    400170: R_Carpal_BND
+    400172: R_Ear_CTRL
+    400174: R_EarBase
+    400176: R_EarTip
+    400178: R_Elbow_BND
+    400180: R_ElbowPoint
+    400182: R_Fingers
+    400184: R_foot_ctrl
+    400186: R_frontfoot_ctrl
+    400188: R_KneePoint
+    400190: R_Palm
+    400192: R_Palm_BND
+    400194: R_Paw_BND
+    400196: R_Pitch
+    400198: R_Pitch 1
+    400200: R_Scapular_BND
+    400202: R_Shoulder_BND
+    400204: R_toes
+    400206: R_Wrist_BND
+    400208: //RootNode
+    400210: Tail_CTRL
+    2100000: lambert1
+    4300000: Boi
+    7400000: Run
+    9500000: //RootNode
+    13700000: Boi
+  externalObjects: {}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 1
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    importConstraints: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations:
+    - serializedVersion: 16
+      name: Run
+      takeName: Take 001
+      firstFrame: 2
+      lastFrame: 19
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 1
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+    previousCalculatedGlobalScale: 0.01
+    hasPreviousCalculatedGlobalScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: Boi
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -1,0 +1,20 @@
+# This file uses centimeters as units for non-parametric coordinates.
+
+mtllib Chicken wire fence small.mtl
+g default
+v 3.000000 2.000000 -6.000000
+v 3.000000 -0.000000 -6.000000
+v 3.000000 2.000000 -7.000000
+v 3.000000 0.000000 -7.000000
+vt 0.005938 0.992009
+vt 0.005938 0.802264
+vt 0.053374 0.992009
+vt 0.053374 0.802264
+vn 1.000000 -0.000000 -0.000000
+vn 1.000000 -0.000000 -0.000000
+vn 1.000000 -0.000000 -0.000000
+vn 1.000000 -0.000000 -0.000000
+s off
+g pPlane1
+usemtl initialShadingGroup
+f 1/1/1 2/2/2 4/4/3 3/3/4
