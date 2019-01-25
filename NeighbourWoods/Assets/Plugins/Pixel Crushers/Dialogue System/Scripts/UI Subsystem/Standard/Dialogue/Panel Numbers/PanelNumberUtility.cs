@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -13,7 +13,8 @@ namespace PixelCrushers.DialogueSystem
 
         public static SubtitlePanelNumber IntToSubtitlePanelNumber(int i)
         {
-            return (0 <= i && i <= 15) ? (SubtitlePanelNumber)i : SubtitlePanelNumber.Default;
+            // First three enum values are special, so increment 3:
+            return (0 <= i && i <= 15) ? (SubtitlePanelNumber)(i+3) : SubtitlePanelNumber.Default;
         }
 
         public static int GetSubtitlePanelIndex(SubtitlePanelNumber subtitlePanelNumber)

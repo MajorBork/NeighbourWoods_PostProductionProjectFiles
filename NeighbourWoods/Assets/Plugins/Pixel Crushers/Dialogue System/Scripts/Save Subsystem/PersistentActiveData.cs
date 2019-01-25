@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -63,7 +63,17 @@ namespace PixelCrushers.DialogueSystem
 
         public virtual void Check()
         {
-            if (enabled) target.SetActive(condition.IsTrue(null));
+            if (enabled)
+            {
+                if (target == null)
+                {
+                    if (DialogueDebug.logWarnings) Debug.LogWarning("Dialogue System: No target is assigned to Persistent Active Data component on " + name + ".", this);
+                }
+                else
+                {
+                    target.SetActive(condition.IsTrue(null));
+                }
+            }
         }
 
     }

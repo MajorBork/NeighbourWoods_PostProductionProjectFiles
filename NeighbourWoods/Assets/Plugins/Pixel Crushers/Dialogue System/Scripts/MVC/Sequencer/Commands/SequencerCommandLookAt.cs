@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -28,7 +28,6 @@ namespace PixelCrushers.DialogueSystem.SequencerCommands
         float endTime;
         Quaternion originalRotation;
         Quaternion targetRotation;
-        Vector3 targetPosition;
 
         public void Start()
         {
@@ -36,26 +35,22 @@ namespace PixelCrushers.DialogueSystem.SequencerCommands
             target = GetSubject(0, sequencer.listener);
             subject = GetSubject(1);
             duration = GetParameterAsFloat(2, 0);
-            bool yAxisOnly = (string.Compare(GetParameter(3), "allAxes", System.StringComparison.OrdinalIgnoreCase) != 0);
+            bool yAxisOnly = !string.Equals(GetParameter(3), "allAxes", System.StringComparison.OrdinalIgnoreCase);
 
-            if (DialogueDebug.logInfo) Debug.Log(string.Format("{0}: Sequencer: LookAt({1}, {2}, {3})", new System.Object[] { DialogueDebug.Prefix, target, subject, duration }));
-            if ((target == null) && DialogueDebug.logWarnings) Debug.LogWarning(string.Format("{0}: Sequencer: Target '{1}' wasn't found.", new System.Object[] { DialogueDebug.Prefix, GetParameter(0) }));
-            if ((subject == null) && DialogueDebug.logWarnings) Debug.LogWarning(string.Format("{0}: Sequencer: Subject '{1}' wasn't found.", new System.Object[] { DialogueDebug.Prefix, GetParameter(1) }));
+            if (DialogueDebug.logInfo) Debug.Log(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}: Sequencer: LookAt({1}, {2}, {3})", new System.Object[] { DialogueDebug.Prefix, target, subject, duration }));
+            if ((target == null) && DialogueDebug.logWarnings) Debug.LogWarning(string.Format("{0}: Sequencer: LookAt Target '{1}' wasn't found.", new System.Object[] { DialogueDebug.Prefix, GetParameter(0) }));
+            if ((subject == null) && DialogueDebug.logWarnings) Debug.LogWarning(string.Format("{0}: Sequencer: LookAt Subject '{1}' wasn't found.", new System.Object[] { DialogueDebug.Prefix, GetParameter(1) }));
 
-            // Set up the move:
+            // Set up the rotation:
             if ((subject != null) && (target != null) && (subject != target))
             {
-
-                // If duration is above the cutoff, smoothly rotate toward target:
+                targetRotation = Quaternion.LookRotation(target.position - subject.position, Vector3.up);
+                if (yAxisOnly) targetRotation = Quaternion.Euler(subject.rotation.eulerAngles.x, targetRotation.eulerAngles.y, subject.rotation.eulerAngles.z);
                 if (duration > SmoothMoveCutoff)
                 {
                     startTime = DialogueTime.time;
                     endTime = startTime + duration;
                     originalRotation = subject.rotation;
-                    targetPosition = (yAxisOnly)
-                        ? new Vector3(target.position.x, subject.position.y, target.position.z)
-                        : target.position;
-                    targetRotation = Quaternion.LookRotation(targetPosition - subject.position, Vector3.up);
                 }
                 else
                 {
@@ -67,7 +62,6 @@ namespace PixelCrushers.DialogueSystem.SequencerCommands
                 Stop();
             }
         }
-
 
         public void Update()
         {
@@ -88,7 +82,7 @@ namespace PixelCrushers.DialogueSystem.SequencerCommands
             // Final rotation:
             if (subject != null && target != null)
             {
-                subject.LookAt(targetPosition);
+                subject.rotation = targetRotation;
             }
 
         }

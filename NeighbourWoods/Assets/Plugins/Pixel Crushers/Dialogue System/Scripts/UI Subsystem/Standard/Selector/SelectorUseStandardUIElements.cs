@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -139,6 +139,8 @@ namespace PixelCrushers.DialogueSystem
             elements.useMessageText.SetActive(true);
             elements.nameText.text = usable.GetName();
             elements.useMessageText.text = GetUseMessage();
+            Tools.SetGameObjectActive(elements.reticleInRange, IsUsableInRange());
+            Tools.SetGameObjectActive(elements.reticleOutOfRange, !IsUsableInRange());
             if (CanTriggerAnimations() && !string.IsNullOrEmpty(elements.animationTransitions.showTrigger))
             {
                 elements.animator.SetTrigger(elements.animationTransitions.showTrigger);
@@ -209,6 +211,7 @@ namespace PixelCrushers.DialogueSystem
 
         private void UpdateText(bool inRange)
         {
+            if (elements == null) return;
             var color = inRange ? elements.inRangeColor : elements.outOfRangeColor;
             if (elements.nameText != null) elements.nameText.color = color;
             if (elements.useMessageText != null) elements.useMessageText.color = color;
@@ -216,6 +219,7 @@ namespace PixelCrushers.DialogueSystem
 
         private void UpdateReticle(bool inRange)
         {
+            if (elements == null) return;
             Tools.SetGameObjectActive(elements.reticleInRange, inRange);
             Tools.SetGameObjectActive(elements.reticleOutOfRange, !inRange);
         }

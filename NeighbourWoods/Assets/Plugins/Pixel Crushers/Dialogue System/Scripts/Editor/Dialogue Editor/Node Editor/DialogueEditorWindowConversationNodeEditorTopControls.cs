@@ -51,7 +51,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             currentHoverGUIContent = null;
         }
 
-    private void ValidateConversationMenuTitleIndex()
+        private void ValidateConversationMenuTitleIndex()
         {
             UpdateConversationTitles();
             if (database != null && conversationIndex >= database.conversations.Count) conversationIndex = -1;
@@ -84,13 +84,12 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
 
         private void DrawNodeEditorTopControls()
         {
-            if (GUI.Button(new Rect(180, 29, 21, EditorGUIUtility.singleLineHeight), new GUIContent("+", "Create a new conversation")))
+            EditorGUILayout.BeginHorizontal();
+            DrawNodeEditorConversationPopup();
+            if (GUILayout.Button(new GUIContent("+", "Create a new conversation"), EditorStyles.miniButtonRight, GUILayout.Width(21)))
             {
                 AddNewConversationToNodeEditor();
             }
-            EditorGUILayout.BeginHorizontal();
-            DrawNodeEditorConversationPopup();
-            GUILayout.FlexibleSpace();
             DrawZoomSlider();
             DrawNodeEditorMenu();
             EditorGUILayout.EndHorizontal();
@@ -121,11 +120,14 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                 if (currentConversation != null)
                 {
                     menu.AddItem(new GUIContent("Copy Conversation"), false, CopyConversationCallback, null);
+                    menu.AddItem(new GUIContent("Delete Conversation"), false, DeleteConversationCallback, null);
                     menu.AddItem(new GUIContent("Split Pipes Into Nodes/Process Conversation"), false, SplitPipesIntoEntries, null);
                     menu.AddItem(new GUIContent("Split Pipes Into Nodes/Trim Whitespace Around Pipes"), trimWhitespaceAroundPipes, ToggleTrimWhitespaceAroundPipes);
                 }
-                else {
+                else
+                {
                     menu.AddDisabledItem(new GUIContent("Copy Conversation"));
+                    menu.AddDisabledItem(new GUIContent("Delete Conversation"));
                     menu.AddDisabledItem(new GUIContent("Split Pipes Into Nodes/Process Conversation"));
                     menu.AddDisabledItem(new GUIContent("Split Pipes Into Nodes/Trim Whitespace Around Pipes"));
                 }
@@ -158,7 +160,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
 
         private void DrawZoomSlider()
         {
-            _zoom = EditorGUILayout.Slider(_zoom, kZoomMin, kZoomMax);
+            _zoom = EditorGUILayout.Slider(_zoom, kZoomMin, kZoomMax, GUILayout.Width(200));
             zoomLocked = GUILayout.Toggle(zoomLocked, GUIContent.none, "IN LockButton");
         }
 
@@ -219,7 +221,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         private void DrawNodeEditorConversationPopup()
         {
             if (conversationTitles == null) conversationTitles = GetConversationTitles();
-            int newIndex = EditorGUI.Popup(new Rect(4, 29, 170, 30), conversationIndex, conversationTitles);
+            int newIndex = EditorGUILayout.Popup(conversationIndex, conversationTitles, GUILayout.Height(30));
             if (newIndex != conversationIndex)
             {
                 SetConversationDropdownIndex(newIndex);
@@ -232,9 +234,12 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         private string[] GetConversationTitles()
         {
             List<string> titles = new List<string>();
-            foreach (var conversation in database.conversations)
+            if (database != null)
             {
-                titles.Add(conversation.Title.Replace("&", "<AMPERSAND>"));
+                foreach (var conversation in database.conversations)
+                {
+                    titles.Add(conversation.Title.Replace("&", "<AMPERSAND>"));
+                }
             }
             return titles.ToArray();
         }
@@ -259,7 +264,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             {
                 return database.GetConversation(conversationTitles[index].Replace("<AMPERSAND>", "&"));
             }
-            else {
+            else
+            {
                 return null;
             }
         }

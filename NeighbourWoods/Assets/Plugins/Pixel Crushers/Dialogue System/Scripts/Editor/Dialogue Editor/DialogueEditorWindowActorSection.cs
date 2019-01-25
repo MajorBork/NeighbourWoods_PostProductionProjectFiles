@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEditor;
@@ -57,24 +57,33 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         {
             var fieldWidth = (rect.width - 14) / 4;
             EditorGUI.LabelField(new Rect(rect.x + 14, rect.y, fieldWidth, rect.height), "Name");
-            EditorGUI.LabelField(new Rect(rect.x + 14 + fieldWidth + 2, rect.y, 3 * fieldWidth  - 2, rect.height), "Description");
+            EditorGUI.LabelField(new Rect(rect.x + 14 + fieldWidth + 2, rect.y, 3 * fieldWidth - 2, rect.height), "Description");
         }
 
         private void DrawActorListElement(Rect rect, int index, bool isActive, bool isFocused)
         {
             if (!(0 <= index && index < database.actors.Count)) return;
+            var nameControl = "ActorName" + index;
+            var descriptionControl = "ActorDescription" + index;
             var actor = database.actors[index];
             var fieldWidth = rect.width / 4;
             EditorGUI.BeginDisabledGroup(!IsAssetInFilter(actor, actorFilter));
             var actorName = actor.Name;
             EditorGUI.BeginChangeCheck();
+            GUI.SetNextControlName(nameControl);
             actorName = EditorGUI.TextField(new Rect(rect.x, rect.y + 2, fieldWidth, EditorGUIUtility.singleLineHeight), GUIContent.none, actorName);
             if (EditorGUI.EndChangeCheck()) actor.Name = actorName;
             var description = actor.Description;
             EditorGUI.BeginChangeCheck();
+            GUI.SetNextControlName(descriptionControl);
             description = EditorGUI.TextField(new Rect(rect.x + fieldWidth + 2, rect.y + 2, 3 * fieldWidth - 2, EditorGUIUtility.singleLineHeight), GUIContent.none, description);
             if (EditorGUI.EndChangeCheck()) actor.Description = description;
             EditorGUI.EndDisabledGroup();
+            var focusedControl = GUI.GetNameOfFocusedControl();
+            if (string.Equals(nameControl, focusedControl) || string.Equals(descriptionControl, focusedControl))
+            {
+                inspectorSelection = actor;
+            }
         }
 
         private void DrawActorListElementBackground(Rect rect, int index, bool isActive, bool isFocused)
@@ -335,7 +344,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                     {
                         ClearActorInfoCaches();
                         nodeColorField.value = (0 <= newIndex && newIndex < EditorTools.StylesColorStrings.Length)
-                            ? EditorTools.StylesColorStrings[newIndex] 
+                            ? EditorTools.StylesColorStrings[newIndex]
                             : (actor.LookupBool("IsPlayer") ? "Blue" : "Gray");
                     }
                 }

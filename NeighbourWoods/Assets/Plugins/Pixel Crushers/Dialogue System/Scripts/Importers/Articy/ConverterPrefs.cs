@@ -1,5 +1,5 @@
 ﻿#if USE_ARTICY
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using System;
 using System.Text;
@@ -57,6 +57,8 @@ namespace PixelCrushers.DialogueSystem.Articy
         public string PortraitFolder { get; set; }
         public bool StageDirectionsAreSequences { get; set; }
         public FlowFragmentModes FlowFragmentMode { get; set; }
+        public string DocumentsSubmenu { get; set; }
+        public string TextTableDocument { get; set; }
         public string OutputFolder { get; set; }
         public bool Overwrite { get; set; }
         public ConversionSettings ConversionSettings { get; set; }
@@ -84,6 +86,8 @@ namespace PixelCrushers.DialogueSystem.Articy
             PortraitFolder = string.Empty;
             StageDirectionsAreSequences = true;
             FlowFragmentMode = FlowFragmentModes.ConversationGroups;
+            DocumentsSubmenu = string.Empty;
+            TextTableDocument = string.Empty;
             OutputFolder = "Assets";
             Overwrite = false;
             ConversionSettings = new ConversionSettings();

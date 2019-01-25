@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections;
@@ -189,12 +189,12 @@ namespace PixelCrushers.DialogueSystem
 #if UNITY_4_3 || UNITY_4_5 || UNITY_4_6 || UNITY_4_7 || UNITY_5_0 || UNITY_5_1 || UNITY_5_2 || UNITY_5_3
         public void OnLevelWasLoaded(int level)
         {
-            UITools.RequireEventSystem();
+            if (addEventSystemIfNeeded) UITools.RequireEventSystem();
         }
 #else
         public void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
         {
-            UITools.RequireEventSystem();
+            if (addEventSystemIfNeeded) UITools.RequireEventSystem();
         }
 #endif
 

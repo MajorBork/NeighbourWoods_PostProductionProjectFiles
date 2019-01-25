@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -149,7 +149,8 @@ namespace PixelCrushers.DialogueSystem
         }
 
         /// <summary>
-        /// Gets <c>parameters[i]</c> as the specified type.
+        /// Gets <c>parameters[i]</c> as the specified type. Culture invariant (i.e., floats use '.' for
+        /// decimal point).
         /// </summary>
         /// <returns>
         /// <c>parameters[i]</c> as type T, or the specified default value if <c>i</c> is out of range
@@ -177,7 +178,7 @@ namespace PixelCrushers.DialogueSystem
             try
             {
                 return ((parameters != null) && (i < parameters.Length))
-                    ? (T)System.Convert.ChangeType(parameters[i], typeof(T))
+                    ? (T)System.Convert.ChangeType(parameters[i], typeof(T), System.Globalization.CultureInfo.InvariantCulture)
                     : defaultValue;
             }
             catch (System.Exception)

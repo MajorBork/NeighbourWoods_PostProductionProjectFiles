@@ -1,5 +1,5 @@
 #if USE_ARTICY
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEditor;
@@ -80,6 +80,7 @@ namespace PixelCrushers.DialogueSystem.Articy
             DrawFlowFragmentMode();
             DrawDirectConversationLinksToEntry1Toggle();
             DrawConvertMarkupToggle();
+            DrawDocumentsSubmenu();
             DrawVoiceOverOptions();
             DrawPortraitFolderField();
             DrawArticyContent();
@@ -209,6 +210,14 @@ namespace PixelCrushers.DialogueSystem.Articy
                     EditorGUILayout.EndHorizontal();
                 }
             }
+            if (EditorGUI.EndChangeCheck()) ConverterPrefsTools.Save(prefs);
+        }
+
+        private void DrawDocumentsSubmenu()
+        {
+            EditorGUI.BeginChangeCheck();
+            prefs.DocumentsSubmenu = EditorGUILayout.TextField(new GUIContent("Documents Submenu", "When converting documents to conversations, group them under this submenu. Leave blank for no submenu."), prefs.DocumentsSubmenu);
+            prefs.TextTableDocument = EditorGUILayout.TextField(new GUIContent("TextTable Document", "Optional name of document whose text should be written to a TextTable asset."), prefs.TextTableDocument);
             if (EditorGUI.EndChangeCheck()) ConverterPrefsTools.Save(prefs);
         }
 
@@ -364,7 +373,7 @@ namespace PixelCrushers.DialogueSystem.Articy
 
         private void DrawArticyEntities()
         {
-            articyEntitiesFoldout = EditorGUILayout.Foldout(articyEntitiesFoldout, "Entities (Actors & Items)");
+            articyEntitiesFoldout = EditorGUILayout.Foldout(articyEntitiesFoldout, "Entities (Actors, Items & Quests)");
             if (articyEntitiesFoldout)
             {
                 StartIndentedSection();
@@ -709,6 +718,7 @@ namespace PixelCrushers.DialogueSystem.Articy
                         ArticyConverter.ConvertArticyDataToDatabase(articyData, prefs, template, database);
                         ArticyEditorTools.FindPortraitTexturesInAssetDatabase(database, prefs.PortraitFolder);
                         EditorUtility.SetDirty(database);
+                        ConvertTextTable(assetName);
                         AssetDatabase.SaveAssets();
                         Debug.Log(string.Format("{0}: Created database '{1}' containing {2} actors, {3} conversations, {4} items/quests, {5} variables, and {6} locations.",
                             DialogueDebug.Prefix, assetName, database.actors.Count, database.conversations.Count, database.items.Count, database.variables.Count, database.locations.Count), database);
@@ -753,6 +763,32 @@ namespace PixelCrushers.DialogueSystem.Articy
                 AssetDatabase.CreateAsset(database, assetPath);
             }
             return database;
+        }
+
+        /// <summary>
+        /// If a TextTable Document has been specified, convert the Document to a TextTable.
+        /// </summary>
+        private void ConvertTextTable(string databaseFilename)
+        {
+            if (articyData == null || articyData.textTableFields.Count == 0 || string.IsNullOrEmpty(prefs.TextTableDocument)) return;
+            var assetPath = prefs.OutputFolder;
+            if (!assetPath.EndsWith("/")) assetPath += "/";
+            var filename = databaseFilename + "_TextTable";
+            assetPath += filename + ".asset";
+            TextTable textTable = AssetDatabase.LoadAssetAtPath(assetPath, typeof(TextTable)) as TextTable;
+            if (textTable != null && prefs.Overwrite)
+            {
+                textTable.languages.Clear();
+                textTable.fields.Clear();
+            }
+            if (textTable == null)
+            {
+                textTable = AssetUtility.CreateAssetWithFilename<TextTable>(assetPath, false);
+            }
+            if (textTable != null)
+            {
+                articyData.textTableFields.ForEach(field => textTable.AddField(field));
+            }
         }
 
     }

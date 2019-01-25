@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -104,7 +104,7 @@ namespace PixelCrushers.DialogueSystem
         private string GetPositionString()
         {
             string optionalLevelName = recordCurrentLevel ? DialogueLua.DoubleQuotesToSingle("," + Tools.loadedLevelName) : string.Empty;
-            return string.Format("{0},{1},{2},{3},{4},{5},{6}{7}",
+            return string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0},{1},{2},{3},{4},{5},{6}{7}",
                 new System.Object[] { transform.position.x, transform.position.y, transform.position.z,
                 transform.rotation.x, transform.rotation.y, transform.rotation.z, transform.rotation.w,
                 optionalLevelName });
@@ -127,7 +127,7 @@ namespace PixelCrushers.DialogueSystem
                 for (int i = 0; i < 7; i++)
                 {
                     values[i] = 0;
-                    float.TryParse(tokens[i], out values[i]);
+                    float.TryParse(tokens[i], System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out values[i]);
                 }
                 transform.position = new Vector3(values[0], values[1], values[2]);
                 transform.rotation = new Quaternion(values[3], values[4], values[5], values[6]);

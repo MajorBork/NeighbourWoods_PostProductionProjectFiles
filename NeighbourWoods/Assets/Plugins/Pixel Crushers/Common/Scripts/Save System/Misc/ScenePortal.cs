@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -53,11 +53,15 @@ namespace PixelCrushers
             UsePortal();
         }
 
+#if USE_PHYSICS2D || !UNITY_2018_1_OR_NEWER
+
         private void OnTriggerEnter2D(Collider2D other)
         {
             if (!other.CompareTag(requiredTag)) return;
             UsePortal();
         }
+
+#endif
 
     }
 

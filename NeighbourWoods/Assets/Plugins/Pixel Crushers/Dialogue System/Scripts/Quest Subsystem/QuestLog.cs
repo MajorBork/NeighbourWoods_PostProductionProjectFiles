@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections.Generic;
@@ -784,12 +784,12 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private static string GetEntryFieldName(int entryNumber)
+        public static string GetEntryFieldName(int entryNumber)
         {
             return string.Format("Entry_{0}", new System.Object[] { entryNumber });
         }
 
-        private static string GetEntryStateFieldName(int entryNumber)
+        public static string GetEntryStateFieldName(int entryNumber)
         {
             return string.Format("Entry_{0}_State", new System.Object[] { entryNumber });
         }

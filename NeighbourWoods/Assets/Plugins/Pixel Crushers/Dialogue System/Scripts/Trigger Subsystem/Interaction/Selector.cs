@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEngine.Events;
@@ -42,20 +42,20 @@ namespace PixelCrushers.DialogueSystem
         }
 
         /// <summary>
-        /// Specifies how to target: center of screen or under the mouse cursor.
+        /// Specifies how to target: center of screen or under the mouse cursor. This is where it raycasts to.
         /// </summary>
-        public enum SelectAt { CenterOfScreen, MousePosition, CustomPosition };
+        public enum SelectAt { CenterOfScreen, MousePosition, CustomPosition }
 
         /// <summary>
         /// Specifies whether to compute range from the targeted object (distance to the camera
         /// or distance to the selector's game object).
         /// </summary>
-        public enum DistanceFrom { Camera, GameObject };
+        public enum DistanceFrom { Camera, GameObject }
 
         /// <summary>
         /// Specifies whether to do 2D or 3D raycasts.
         /// </summary>
-        public enum Dimension { In2D, In3D };
+        public enum Dimension { In2D, In3D }
 
         /// <summary>
         /// The default layermask is just the Default layer.
@@ -63,16 +63,16 @@ namespace PixelCrushers.DialogueSystem
         private static LayerMask DefaultLayer = 1;
 
         /// <summary>
+        /// How to target (center of screen or under mouse cursor). Default is center of screen.
+        /// </summary>
+        [Tooltip("How to target. This is where the raycast points to.")]
+        public SelectAt selectAt = SelectAt.CenterOfScreen;
+
+        /// <summary>
         /// The layer mask to use when targeting objects. Objects on others layers are ignored.
         /// </summary>
         [Tooltip("Layer mask to use when targeting objects; objects on others layers are ignored.")]
         public LayerMask layerMask = DefaultLayer;
-
-        /// <summary>
-        /// How to target (center of screen or under mouse cursor). Default is center of screen.
-        /// </summary>
-        [Tooltip("How to target.")]
-        public SelectAt selectAt = SelectAt.CenterOfScreen;
 
         /// <summary>
         /// How to compute range to targeted object. Default is from the camera.
@@ -243,10 +243,16 @@ namespace PixelCrushers.DialogueSystem
         protected string useMessage = string.Empty;
         protected float distance = 0;
         protected GUIStyle guiStyle = null;
+        protected float guiStyleLineHeight = 16f;
 
         protected Ray lastRay = new Ray();
         protected RaycastHit lastHit = new RaycastHit();
-        protected RaycastHit[] lastHits = new RaycastHit[0];
+        protected RaycastHit[] lastHits = null;
+        protected int numLastHits = 0;
+        private const int MaxHits = 100;
+#if USE_PHYSICS2D || !UNITY_2018_1_OR_NEWER
+        RaycastHit2D[] lastHits2D = null;
+#endif
 
         public virtual void Start()
         {
@@ -322,15 +328,18 @@ namespace PixelCrushers.DialogueSystem
 
         protected virtual void Run2DRaycast()
         {
+#if USE_PHYSICS2D || !UNITY_2018_1_OR_NEWER
+
             if (raycastAll)
             {
 
                 // Run Physics2D.RaycastAll:
-                RaycastHit2D[] hits;
-                hits = Physics2D.RaycastAll(UnityEngine.Camera.main.ScreenToWorldPoint(GetSelectionPoint()), Vector2.zero, maxSelectionDistance, layerMask);
+                if (lastHits2D == null) lastHits2D = new RaycastHit2D[MaxHits];
+                int numHits = Physics2D.RaycastNonAlloc(UnityEngine.Camera.main.ScreenToWorldPoint(GetSelectionPoint()), Vector2.zero, lastHits2D, maxSelectionDistance, layerMask);
                 bool foundUsable = false;
-                foreach (var hit in hits)
+                for (int i = 0; i < numHits; i++)
                 {
+                    var hit = lastHits2D[i];
                     float hitDistance = (distanceFrom == DistanceFrom.Camera) ? 0 : Vector3.Distance(gameObject.transform.position, hit.collider.transform.position);
                     if (selection == hit.collider.gameObject)
                     {
@@ -389,6 +398,7 @@ namespace PixelCrushers.DialogueSystem
                     DeselectTarget();
                 }
             }
+#endif
         }
 
         protected virtual void Run3DRaycast()
@@ -400,13 +410,12 @@ namespace PixelCrushers.DialogueSystem
             {
 
                 // Run RaycastAll:
-                RaycastHit[] hits;
-                hits = Physics.RaycastAll(ray, maxSelectionDistance, layerMask);
-                lastRay = ray;
-                lastHits = hits;
+                if (lastHits == null) lastHits = new RaycastHit[MaxHits];
+                numLastHits = Physics.RaycastNonAlloc(ray, lastHits, maxSelectionDistance, layerMask);
                 bool foundUsable = false;
-                foreach (var hit in hits)
+                for (int i = 0; i < numLastHits; i++)
                 {
+                    var hit = lastHits[i];
                     float hitDistance = (distanceFrom == DistanceFrom.Camera) ? hit.distance : Vector3.Distance(gameObject.transform.position, hit.collider.transform.position);
                     if (selection == hit.collider.gameObject)
                     {
@@ -502,8 +511,19 @@ namespace PixelCrushers.DialogueSystem
             }
 
             // Check for use key or button (only if releasing button on same selection):
-            return ((useKey != KeyCode.None) && Input.GetKeyDown(useKey))
-                || (!string.IsNullOrEmpty(useButton) && Input.GetButtonUp(useButton) && (selection == clickedDownOn));
+            if ((useKey != KeyCode.None) && Input.GetKeyDown(useKey)) return true;
+            if (!string.IsNullOrEmpty(useButton))
+            {
+                if (DialogueManager.instance != null && DialogueManager.getInputButtonDown == DialogueManager.instance.StandardGetInputButtonDown)
+                {
+                    return Input.GetButtonUp(useButton) && (selection == clickedDownOn);
+                }
+                else
+                {
+                    return DialogueManager.GetInputButtonDown(useButton);
+                }
+            }
+            return false;
         }
 
         protected virtual Vector3 GetSelectionPoint()
@@ -526,35 +546,34 @@ namespace PixelCrushers.DialogueSystem
         /// </summary>
         public virtual void OnGUI()
         {
-            if (useDefaultGUI)
+            if (!useDefaultGUI) return;
+            if (guiStyle == null && (Event.current.type == EventType.Repaint || usable != null))
             {
                 SetGuiStyle();
-                Rect screenRect = new Rect(0, 0, Screen.width, Screen.height);
-                if (usable != null)
+            }
+            if (usable != null)
+            {
+                bool inUseRange = (distance <= usable.maxUseDistance);
+                guiStyle.normal.textColor = inUseRange ? inRangeColor : outOfRangeColor;
+                if (string.IsNullOrEmpty(heading))
                 {
-                    bool inUseRange = (distance <= usable.maxUseDistance);
-                    guiStyle.normal.textColor = inUseRange ? inRangeColor : outOfRangeColor;
-                    if (string.IsNullOrEmpty(heading))
-                    {
-                        heading = usable.GetName();
-                        useMessage = string.IsNullOrEmpty(usable.overrideUseMessage) ? defaultUseMessage : usable.overrideUseMessage;
-                    }
-                    UnityGUITools.DrawText(screenRect, heading, guiStyle, textStyle, textStyleColor);
-                    UnityGUITools.DrawText(new Rect(0, guiStyle.CalcSize(new GUIContent("Ay")).y, Screen.width, Screen.height), useMessage, guiStyle, textStyle, textStyleColor);
-                    Texture2D reticleTexture = inUseRange ? reticle.inRange : reticle.outOfRange;
-                    if (reticleTexture != null) GUI.Label(new Rect(0.5f * (Screen.width - reticle.width), 0.5f * (Screen.height - reticle.height), reticle.width, reticle.height), reticleTexture);
+                    heading = usable.GetName();
+                    useMessage = string.IsNullOrEmpty(usable.overrideUseMessage) ? defaultUseMessage : usable.overrideUseMessage;
                 }
+                UnityGUITools.DrawText(new Rect(0, 0, Screen.width, Screen.height), heading, guiStyle, textStyle, textStyleColor);
+                UnityGUITools.DrawText(new Rect(0, guiStyleLineHeight, Screen.width, Screen.height), useMessage, guiStyle, textStyle, textStyleColor);
+                Texture2D reticleTexture = inUseRange ? reticle.inRange : reticle.outOfRange;
+                if (reticleTexture != null) GUI.Label(new Rect(0.5f * (Screen.width - reticle.width), 0.5f * (Screen.height - reticle.height), reticle.width, reticle.height), reticleTexture);
             }
         }
 
         protected void SetGuiStyle()
         {
-            GUI.skin = UnityGUITools.GetValidGUISkin(guiSkin);
-            if (guiStyle == null)
-            {
-                guiStyle = new GUIStyle(GUI.skin.FindStyle(guiStyleName) ?? GUI.skin.label);
-                guiStyle.alignment = alignment;
-            }
+            guiSkin = UnityGUITools.GetValidGUISkin(guiSkin);
+            GUI.skin = guiSkin;
+            guiStyle = new GUIStyle(string.IsNullOrEmpty(guiStyleName) ? GUI.skin.label : (GUI.skin.FindStyle(guiStyleName) ?? GUI.skin.label));
+            guiStyle.alignment = alignment;
+            guiStyleLineHeight = guiStyle.CalcSize(new GUIContent("Ay")).y;
         }
 
         /// <summary>
@@ -567,12 +586,16 @@ namespace PixelCrushers.DialogueSystem
             Gizmos.DrawLine(lastRay.origin, lastRay.origin + lastRay.direction * maxSelectionDistance);
             if (raycastAll)
             {
-                foreach (var hit in lastHits)
+                if (lastHits != null)
                 {
-                    var usable = hit.collider.GetComponent<Usable>();
-                    bool isUsable = (usable != null) && usable.enabled;
-                    Gizmos.color = isUsable ? Color.green : Color.red;
-                    Gizmos.DrawWireSphere(hit.point, 0.2f);
+                    for (int i = 0; i < numLastHits; i++)
+                    {
+                        var hit = lastHits[i];
+                        var usable = hit.collider.GetComponent<Usable>();
+                        bool isUsable = (usable != null) && usable.enabled;
+                        Gizmos.color = isUsable ? Color.green : Color.red;
+                        Gizmos.DrawWireSphere(hit.point, 0.2f);
+                    }
                 }
             }
             else

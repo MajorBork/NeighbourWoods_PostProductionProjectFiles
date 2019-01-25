@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -49,17 +49,17 @@ namespace PixelCrushers.DialogueSystem
             if (!enabled) return;
             var conversationID = DialogueLua.GetVariable("CurrentConversationID").AsInt;
             var entryID = DialogueLua.GetVariable("CurrentEntryID").AsInt;
+            DialogueManager.StopConversation();
             if (conversationID >= 0 && entryID > 0)
             {
                 var conversation = DialogueManager.MasterDatabase.GetConversation(conversationID);
                 var actorName = DialogueLua.GetVariable("CurrentConversationActor").AsString;
                 var conversantName = DialogueLua.GetVariable("CurrentConversationConversant").AsString;
                 if (DialogueDebug.logInfo) Debug.Log("Dialogue System: ConversationStateSaver is resuming conversation " + conversation.Title + " with actor=" + actorName + " and conversant=" + conversantName + " at entry " + entryID + ".", this);
-                var actor = GameObject.Find(actorName);
-                var conversant = GameObject.Find(conversantName);
+                var actor = string.IsNullOrEmpty(actorName) ? null : GameObject.Find(actorName);
+                var conversant = string.IsNullOrEmpty(conversantName) ? null : GameObject.Find(conversantName);
                 var actorTransform = (actor != null) ? actor.transform : null;
                 var conversantTransform = (conversant != null) ? conversant.transform : null;
-                DialogueManager.StopConversation();
                 DialogueManager.StartConversation(conversation.Title, actorTransform, conversantTransform, entryID);
             }
         }

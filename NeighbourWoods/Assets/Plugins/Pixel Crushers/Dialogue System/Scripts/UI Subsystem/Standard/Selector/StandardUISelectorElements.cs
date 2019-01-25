@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System;
@@ -68,21 +68,26 @@ namespace PixelCrushers.DialogueSystem
 
         public Animator animator { get; private set; }
 
-        public static StandardUISelectorElements instance = null;
+        public static StandardUISelectorElements instance
+        {
+            get { return (m_instances.Count > 0) ? m_instances[0] : null; }
+        }
 
         private static List<StandardUISelectorElements> m_instances = new List<StandardUISelectorElements>(); 
 
         private void Awake()
         {
-            instance = this;
-            m_instances.Add(this);
             animator = GetComponent<Animator>();
+        }
+
+        private void OnEnable()
+        {
+            m_instances.Add(this);
         }
 
         private void OnDisable()
         {
             m_instances.Remove(this);
-            instance = (m_instances.Count > 0) ? m_instances[0] : null;
         }
     }
 

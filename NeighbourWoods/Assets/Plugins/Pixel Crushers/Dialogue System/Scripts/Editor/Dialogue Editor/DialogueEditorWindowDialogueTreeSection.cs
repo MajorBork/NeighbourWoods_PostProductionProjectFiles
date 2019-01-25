@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEditor;
@@ -566,6 +566,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             if (!entry.isGroup)
             {
 
+                EditorGUI.BeginChangeCheck();
+
                 // Menu text (including localized if defined in template):
                 EditorGUILayout.LabelField(new GUIContent("Menu Text", "Response menu text (e.g., short paraphrase). If blank, uses Dialogue Text"));
                 entry.MenuText = EditorGUILayout.TextArea(entry.MenuText);
@@ -575,6 +577,11 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                 EditorGUILayout.LabelField(new GUIContent("Dialogue Text", "Line spoken by actor. If blank, uses Menu Text."));
                 entry.DialogueText = EditorGUILayout.TextArea(entry.DialogueText);
                 DrawLocalizedVersions(entry.fields, "{0}", true, FieldType.Localization);
+
+                if (EditorGUI.EndChangeCheck())
+                {
+                    if (string.Equals(entry.Title, "New Dialogue Entry")) entry.Title = string.Empty;
+                }
 
                 // Sequence (including localized if defined):
                 entry.Sequence = SequenceEditorTools.DrawLayout(new GUIContent("Sequence", "Cutscene played when speaking this entry. If set, overrides Dialogue Manager's Default Sequence. Drag audio clips to add AudioWait() commands."), entry.Sequence, ref sequenceRect);
@@ -1209,6 +1216,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                 }
             }
             text = entry.id + ": " + text;
+            text = text.Replace("/", "\u2215"); // Prevent embedded forward slashes from acting as submenus.
             if (useSubmenus)
             {
                 text = "Group " + ((menuItemNumber / CrossConversationPopupSubmenuSize) + 1) + "/" + text;

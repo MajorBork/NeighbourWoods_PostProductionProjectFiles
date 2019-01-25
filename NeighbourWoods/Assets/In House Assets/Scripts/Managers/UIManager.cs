@@ -180,8 +180,6 @@ namespace Manager.UI
         {
             fadeCanvas.DOFade(1, fadeInTime);
             yield return new WaitForSeconds(fadeInTime * 2);
-            //string temp = timeSlot.ToString();
-            //temp.ToLower();
             timeText.text = FormatDay(timeSlot.ToString());
             dayText.text = FormatDay(day.ToString());
             yield return new WaitForSeconds(fadeInTime * 2);

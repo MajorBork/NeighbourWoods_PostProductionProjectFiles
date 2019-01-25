@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections.Generic;
@@ -171,8 +171,20 @@ namespace PixelCrushers.DialogueSystem
         /// </summary>
         protected GUIStyle guiStyle = null;
 
+        protected float guiStyleLineHeight = 16f;
+
         protected const float MinTimeBetweenUseButton = 0.5f;
         protected float timeToEnableUseButton = 0;
+
+        public virtual void Start()
+        {
+            bool found = false;
+            if (GetComponent<Collider>() != null) found = true;
+#if USE_PHYSICS2D || !UNITY_2018_1_OR_NEWER
+            if (!found && GetComponent<Collider2D>() != null) found = true;
+#endif
+            if (!found && DialogueDebug.logWarnings) Debug.LogWarning("Dialogue System: Proximity Selector requires a collider, but it has no collider component.", this);
+        }
 
         public virtual void OnConversationEnd(Transform actor)
         {
@@ -243,7 +255,7 @@ namespace PixelCrushers.DialogueSystem
             if (DialogueManager.IsDialogueSystemInputDisabled()) return false;
             if (enableTouch && IsTouchDown()) return true;
             return ((useKey != KeyCode.None) && Input.GetKeyDown(useKey))
-                || (!string.IsNullOrEmpty(useButton) && Input.GetButtonUp(useButton));
+                || (!string.IsNullOrEmpty(useButton) && DialogueManager.GetInputButtonDown(useButton));
         }
 
         protected bool IsTouchDown()
@@ -272,18 +284,6 @@ namespace PixelCrushers.DialogueSystem
         }
 
         /// <summary>
-        /// If we entered a 2D trigger, check if it's a usable object. If so, update the selection
-        /// and raise the SelectedUsableObject event.
-        /// </summary>
-        /// <param name='other'>
-        /// The 2D trigger collider.
-        /// </param>
-        protected void OnTriggerEnter2D(Collider2D other)
-        {
-            CheckTriggerEnter(other.gameObject);
-        }
-
-        /// <summary>
         /// If we just left a trigger, check if it's the current selection. If so, clear the
         /// selection and raise the DeselectedUsableObject event. If we're still in range of
         /// any other usables, select one of them.
@@ -294,6 +294,20 @@ namespace PixelCrushers.DialogueSystem
         protected void OnTriggerExit(Collider other)
         {
             CheckTriggerExit(other.gameObject);
+        }
+
+#if USE_PHYSICS2D || !UNITY_2018_1_OR_NEWER
+
+        /// <summary>
+        /// If we entered a 2D trigger, check if it's a usable object. If so, update the selection
+        /// and raise the SelectedUsableObject event.
+        /// </summary>
+        /// <param name='other'>
+        /// The 2D trigger collider.
+        /// </param>
+        protected void OnTriggerEnter2D(Collider2D other)
+        {
+            CheckTriggerEnter(other.gameObject);
         }
 
         /// <summary>
@@ -308,6 +322,8 @@ namespace PixelCrushers.DialogueSystem
         {
             CheckTriggerExit(other.gameObject);
         }
+
+#endif
 
         protected virtual void CheckTriggerEnter(GameObject other)
         {
@@ -364,27 +380,27 @@ namespace PixelCrushers.DialogueSystem
         /// </summary>
         public virtual void OnGUI()
         {
-            if (useDefaultGUI)
+            if (!useDefaultGUI) return;
+            if (guiStyle == null && (Event.current.type == EventType.Repaint || currentUsable != null))
             {
                 SetGuiStyle();
-                Rect screenRect = new Rect(0, 0, Screen.width, Screen.height);
-                if (currentUsable != null)
-                {
-                    UnityGUITools.DrawText(screenRect, currentHeading, guiStyle, textStyle, textStyleColor);
-                    UnityGUITools.DrawText(new Rect(0, guiStyle.CalcSize(new GUIContent("Ay")).y, Screen.width, Screen.height), currentUseMessage, guiStyle, textStyle, textStyleColor);
-                }
+            }
+            if (currentUsable != null)
+            {
+                GUI.skin = guiSkin;
+                UnityGUITools.DrawText(new Rect(0, 0, Screen.width, Screen.height), currentHeading, guiStyle, textStyle, textStyleColor);
+                UnityGUITools.DrawText(new Rect(0, guiStyleLineHeight, Screen.width, Screen.height), currentUseMessage, guiStyle, textStyle, textStyleColor);
             }
         }
 
         protected void SetGuiStyle()
         {
-            GUI.skin = UnityGUITools.GetValidGUISkin(guiSkin);
-            if (guiStyle == null)
-            {
-                guiStyle = new GUIStyle(GUI.skin.FindStyle(guiStyleName) ?? GUI.skin.label);
-                guiStyle.alignment = alignment;
-                guiStyle.normal.textColor = color;
-            }
+            guiSkin = UnityGUITools.GetValidGUISkin(guiSkin);
+            GUI.skin = guiSkin;
+            guiStyle = new GUIStyle(string.IsNullOrEmpty(guiStyleName) ? GUI.skin.label : (GUI.skin.FindStyle(guiStyleName) ?? GUI.skin.label));
+            guiStyle.alignment = alignment;
+            guiStyle.normal.textColor = color;
+            guiStyleLineHeight = guiStyle.CalcSize(new GUIContent("Ay")).y;
         }
 
     }

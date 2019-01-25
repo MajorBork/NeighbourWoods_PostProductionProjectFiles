@@ -1,5 +1,5 @@
 ﻿#if TMP_PRESENT
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEngine.Events;
@@ -210,6 +210,7 @@ namespace PixelCrushers.DialogueSystem
                 MonoBehaviour controller = GetComponentInParent<AbstractDialogueUI>();
                 if (controller == null) controller = DialogueManager.instance;
                 coroutineController = controller;
+                if (coroutineController == null) coroutineController = this;
             }
             typewriterCoroutine = coroutineController.StartCoroutine(Play(fromIndex));
         }
@@ -372,15 +373,26 @@ namespace PixelCrushers.DialogueSystem
 
         private void PlayCharacterAudio()
         {
-            if (audioClip == null || runtimeAudioSource == null) return;
+            if (audioClip == null || audioSource == null) return;
+            AudioClip randomClip = null;
+            if (alternateAudioClips != null && alternateAudioClips.Length > 0)
+            {
+                var randomIndex = UnityEngine.Random.Range(0, alternateAudioClips.Length + 1);
+                randomClip = (randomIndex < alternateAudioClips.Length) ? alternateAudioClips[randomIndex] : audioClip;
+            }
             if (interruptAudioClip)
             {
-                if (runtimeAudioSource.isPlaying) runtimeAudioSource.Stop();
-                runtimeAudioSource.Play();
+                if (audioSource.isPlaying) audioSource.Stop();
+                if (randomClip != null) audioSource.clip = randomClip;
+                audioSource.Play();
             }
             else
             {
-                if (!runtimeAudioSource.isPlaying) runtimeAudioSource.Play();
+                if (!audioSource.isPlaying)
+                {
+                    if (randomClip != null) audioSource.clip = randomClip;
+                    audioSource.Play();
+                }
             }
         }
 

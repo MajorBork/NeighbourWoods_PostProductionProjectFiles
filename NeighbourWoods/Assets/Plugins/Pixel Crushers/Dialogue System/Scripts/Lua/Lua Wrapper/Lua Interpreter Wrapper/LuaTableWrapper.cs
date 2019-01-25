@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 #if !(USE_NLUA || OVERRIDE_LUA)
 using UnityEngine;

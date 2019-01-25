@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System;
@@ -43,7 +43,11 @@ namespace PixelCrushers
             try
             {
                 var wrapperName = type.Namespace + ".Wrappers." + type.Name;
+#if NET_STANDARD_2_0
+                var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(p => !(p.IsDynamic)); // Exclude dynamic assemblies.
+#else
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies().Where(p => !(p.ManifestModule is System.Reflection.Emit.ModuleBuilder)); // Exclude dynamic assemblies.
+#endif
                 foreach (var assembly in assemblies)
                 {
                     try

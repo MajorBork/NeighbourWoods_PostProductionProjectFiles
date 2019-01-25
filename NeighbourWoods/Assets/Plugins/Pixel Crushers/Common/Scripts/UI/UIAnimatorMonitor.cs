@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections;
@@ -17,9 +17,11 @@ namespace PixelCrushers
 
         private MonoBehaviour m_target;
 
+        private bool m_lookedForAnimator = false;
+
         private Animator m_animator = null;
 
-        private bool m_lookedForAnimator = false;
+        private Animation m_animation = null;
 
         private Coroutine m_coroutine = null;
 
@@ -50,34 +52,50 @@ namespace PixelCrushers
         {
             if (HasAnimator() && !string.IsNullOrEmpty(triggerName))
             {
-                CheckAnimatorModeAndTimescale(triggerName);
-                m_animator.SetTrigger(triggerName);
-                currentTrigger = triggerName;
-                float timeout = Time.realtimeSinceStartup + MaxWaitDuration;
-                var goalHashID = Animator.StringToHash(triggerName);
-                var oldHashId = UIUtility.GetAnimatorNameHash(m_animator.GetCurrentAnimatorStateInfo(0));
-                var currentHashID = oldHashId;
-                if (wait)
+                if (m_animator != null)
                 {
-                    while ((currentHashID != goalHashID) && (currentHashID == oldHashId) && (Time.realtimeSinceStartup < timeout))
+                    // Run Animator and wait:
+                    CheckAnimatorModeAndTimescale(triggerName);
+                    m_animator.SetTrigger(triggerName);
+                    currentTrigger = triggerName;
+                    float timeout = Time.realtimeSinceStartup + MaxWaitDuration;
+                    var goalHashID = Animator.StringToHash(triggerName);
+                    var oldHashId = UIUtility.GetAnimatorNameHash(m_animator.GetCurrentAnimatorStateInfo(0));
+                    var currentHashID = oldHashId;
+                    if (wait)
                     {
-                        yield return null;
-                        currentHashID = UIUtility.GetAnimatorNameHash(m_animator.GetCurrentAnimatorStateInfo(0));
-                    }
-                    if (Time.realtimeSinceStartup < timeout)
-                    {
-                        var clipLength = m_animator.GetCurrentAnimatorStateInfo(0).length;
-                        if (Mathf.Approximately(0, Time.timeScale))
+                        while ((currentHashID != goalHashID) && (currentHashID == oldHashId) && (Time.realtimeSinceStartup < timeout))
                         {
-                            timeout = Time.realtimeSinceStartup + clipLength;
-                            while (Time.realtimeSinceStartup < timeout)
+                            yield return null;
+                            currentHashID = (m_animator != null) ? UIUtility.GetAnimatorNameHash(m_animator.GetCurrentAnimatorStateInfo(0)) : 0;
+                        }
+                        if (Time.realtimeSinceStartup < timeout && m_animator != null)
+                        {
+                            var clipLength = m_animator.GetCurrentAnimatorStateInfo(0).length;
+                            if (Mathf.Approximately(0, Time.timeScale))
                             {
-                                yield return null;
+                                timeout = Time.realtimeSinceStartup + clipLength;
+                                while (Time.realtimeSinceStartup < timeout)
+                                {
+                                    yield return null;
+                                }
+                            }
+                            else
+                            {
+                                yield return new WaitForSeconds(clipLength);
                             }
                         }
-                        else
+                    }
+                }
+                else if (m_animation != null)
+                {
+                    m_animation.Play(triggerName);
+                    if (wait)
+                    {
+                        var clip = m_animation.GetClip(triggerName);
+                        if (clip != null)
                         {
-                            yield return new WaitForSeconds(clipLength);
+                            yield return new WaitForSeconds(clip.length);
                         }
                     }
                 }
@@ -89,16 +107,27 @@ namespace PixelCrushers
 
         private bool HasAnimator()
         {
-            if ((m_animator == null) && !m_lookedForAnimator)
+            if (m_animator == null && m_animation == null && !m_lookedForAnimator)
             {
                 m_lookedForAnimator = true;
                 if (m_target != null)
                 {
                     m_animator = m_target.GetComponent<Animator>();
-                    if (m_animator == null) m_animator = m_target.GetComponentInChildren<Animator>();
+                    if (m_animator == null)
+                    {
+                        m_animation = m_target.GetComponent<Animation>();
+                        if (m_animation == null)
+                        {
+                            m_animator = m_target.GetComponentInChildren<Animator>();
+                            if (m_animator == null)
+                            {
+                                m_animation = m_target.GetComponentInChildren<Animation>();
+                            }
+                        }
+                    }
                 }
             }
-            return (m_animator != null);
+            return (m_animator != null || m_animation != null);
         }
 
         private void CheckAnimatorModeAndTimescale(string triggerName)

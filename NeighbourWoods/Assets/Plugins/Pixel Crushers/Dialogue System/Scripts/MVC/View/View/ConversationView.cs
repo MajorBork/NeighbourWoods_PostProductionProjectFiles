@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System;
@@ -39,6 +39,7 @@ namespace PixelCrushers.DialogueSystem
         private Action CancelledHandler = null;
         private DialogueEntrySpokenDelegate dialogueEntrySpokenHandler = null;
         private bool waitForContinue = false;
+        private bool notifyOnFinishSubtitle = false;
         private bool isPlayingResponseMenuSequence = false;
 
         public DisplaySettings displaySettings { get { return settings; } }
@@ -118,6 +119,7 @@ namespace PixelCrushers.DialogueSystem
         /// </param>
         public void StartSubtitle(Subtitle subtitle, bool isPCResponseMenuNext, bool isPCAutoResponseNext)
         {
+            notifyOnFinishSubtitle = true;
             if (subtitle != null)
             {
                 if (DialogueDebug.logInfo) Debug.Log(string.Format("{0}: {1} says '{2}'", new System.Object[] { DialogueDebug.Prefix, Tools.GetGameObjectName(subtitle.speakerInfo.transform), subtitle.formattedText.text }));
@@ -346,28 +348,22 @@ namespace PixelCrushers.DialogueSystem
         private void HandleContinueButtonClick()
         {
             waitForContinue = false;
-            if (sequencer.isPlaying)
-            {
-                sequencer.Stop();
-            }
-            else
-            {
-                FinishSubtitle();
-            }
+            FinishSubtitle();
         }
 
         private void OnCancelSubtitle()
         {
-            BroadcastMessage(DialogueSystemMessages.OnConversationLineCancelled, lastNPCSubtitle, SendMessageOptions.DontRequireReceiver);
-            waitForContinue = false;
-            if (sequencer.isPlaying)
+            if (lastNPCSubtitle == null) // Need to create a dummy subtitle to OnConversationLineCancelled's signature.
             {
-                sequencer.Stop();
+                var dummyNPCSubtitle = new Subtitle(null, null, null, string.Empty, string.Empty, null);
+                BroadcastMessage(DialogueSystemMessages.OnConversationLineCancelled, dummyNPCSubtitle, SendMessageOptions.DontRequireReceiver);
             }
             else
             {
-                FinishSubtitle();
+                BroadcastMessage(DialogueSystemMessages.OnConversationLineCancelled, lastNPCSubtitle, SendMessageOptions.DontRequireReceiver);
             }
+            waitForContinue = false;
+            FinishSubtitle();
         }
 
         private void FinishSubtitle()
@@ -376,8 +372,12 @@ namespace PixelCrushers.DialogueSystem
             {
                 if (sequencer != null) sequencer.Stop();
                 ui.HideSubtitle(lastSubtitle);
-                if (_subtitle != null) NotifyParticipantsOnConversationLineEnd(lastSubtitle);
-                if (FinishedSubtitleHandler != null) FinishedSubtitleHandler(this, EventArgs.Empty);
+                if (notifyOnFinishSubtitle)
+                {
+                    notifyOnFinishSubtitle = false;
+                    if (_subtitle != null) NotifyParticipantsOnConversationLineEnd(lastSubtitle);
+                    if (FinishedSubtitleHandler != null) FinishedSubtitleHandler(this, EventArgs.Empty);
+                }
             }
         }
 
@@ -480,11 +480,11 @@ namespace PixelCrushers.DialogueSystem
                 }
                 if (string.IsNullOrEmpty(line))
                 {
-                    return string.Format("Delay({0})", new System.Object[] { duration });
+                    return string.Format(System.Globalization.CultureInfo.InvariantCulture, "Delay({0})", new System.Object[] { duration });
                 }
                 else
                 {
-                    return Sequencer.ReplaceShortcuts(line).Replace(SequencerKeywords.End, duration.ToString());
+                    return Sequencer.ReplaceShortcuts(line).Replace(SequencerKeywords.End, duration.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 }
             }
         }
@@ -501,7 +501,7 @@ namespace PixelCrushers.DialogueSystem
             subtitle.sequence = Sequencer.ReplaceShortcuts(subtitle.sequence);
             if (!subtitle.sequence.Contains(SequencerKeywords.End)) return subtitle.sequence;
             float duration = sequencer.subtitleEndTime;
-            return subtitle.sequence.Replace(SequencerKeywords.End, duration.ToString());
+            return subtitle.sequence.Replace(SequencerKeywords.End, duration.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
 
         private void NotifyParticipantsOnConversationLine(Subtitle subtitle)

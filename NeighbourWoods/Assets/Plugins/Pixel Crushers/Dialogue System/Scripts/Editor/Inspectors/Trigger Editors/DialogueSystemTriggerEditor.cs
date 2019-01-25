@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEditor;
@@ -12,7 +12,7 @@ namespace PixelCrushers.DialogueSystem
     public class DialogueSystemTriggerEditor : Editor
     {
 
-        private const string InspectorEditorPrefsKey = "PixelCrushers.DialogueSystem.DialogueSystemTriggerPrefs";
+        protected const string InspectorEditorPrefsKey = "PixelCrushers.DialogueSystem.DialogueSystemTriggerPrefs";
 
         [Serializable]
         public class Foldouts
@@ -32,31 +32,31 @@ namespace PixelCrushers.DialogueSystem
             public bool unityEventFoldout = false;
         }
 
-        private Foldouts foldouts = null;
-        private ReorderableList sendMessageList = null;
-        private ReorderableList setActiveList = null;
-        private ReorderableList setEnabledList = null;
-        private ReorderableList setAnimatorStateList = null;
-        private QuestPicker questPicker = null;
-        private LuaScriptWizard luaScriptWizard = null;
-        private Rect sequenceRect;
+        protected Foldouts foldouts = null;
+        protected ReorderableList sendMessageList = null;
+        protected ReorderableList setActiveList = null;
+        protected ReorderableList setEnabledList = null;
+        protected ReorderableList setAnimatorStateList = null;
+        protected QuestPicker questPicker = null;
+        protected LuaScriptWizard luaScriptWizard = null;
+        protected Rect sequenceRect;
 
-        private DialogueSystemTrigger trigger;
-        private SerializedProperty triggerProperty;
+        protected DialogueSystemTrigger trigger;
+        protected SerializedProperty triggerProperty;
 
-        private bool showSetQuestStateAction;
-        private bool showRunLuaCodeAction;
-        private bool showPlaySequenceAction;
-        private bool showAlertAction;
-        private bool showSendMessagesAction;
-        private bool showBarkAction;
-        private bool showConversationAction;
-        private bool showSetActiveAction;
-        private bool showSetEnabledAction;
-        private bool showAnimatorStatesAction;
-        private bool showUnityEventAction;
+        protected bool showSetQuestStateAction;
+        protected bool showRunLuaCodeAction;
+        protected bool showPlaySequenceAction;
+        protected bool showAlertAction;
+        protected bool showSendMessagesAction;
+        protected bool showBarkAction;
+        protected bool showConversationAction;
+        protected bool showSetActiveAction;
+        protected bool showSetEnabledAction;
+        protected bool showAnimatorStatesAction;
+        protected bool showUnityEventAction;
 
-        public void OnEnable()
+        public virtual void OnEnable()
         {
             var trigger = target as DialogueSystemTrigger;
             if (trigger == null) return;
@@ -102,10 +102,11 @@ namespace PixelCrushers.DialogueSystem
             setAnimatorStateList.drawElementCallback = OnDrawSetAnimatorStateListElement;
 
             foldouts = EditorPrefs.HasKey(InspectorEditorPrefsKey) ? JsonUtility.FromJson<Foldouts>(EditorPrefs.GetString(InspectorEditorPrefsKey)) : new Foldouts();
+            if (foldouts == null) foldouts = new Foldouts();
 
         }
 
-        private void OnDisable()
+        protected virtual void OnDisable()
         {
             EditorPrefs.SetString(InspectorEditorPrefsKey, JsonUtility.ToJson(foldouts));
         }
@@ -121,7 +122,7 @@ namespace PixelCrushers.DialogueSystem
             serializedObject.ApplyModifiedProperties();
         }
 
-        private void DrawTopInfo()
+        protected virtual void DrawTopInfo()
         {
             // Trigger event:
             triggerProperty = serializedObject.FindProperty("trigger");
@@ -164,7 +165,7 @@ namespace PixelCrushers.DialogueSystem
             if (newDatabase != null) EditorTools.selectedDatabase = newDatabase;
         }
 
-        private void DrawConditions()
+        protected virtual void DrawConditions()
         {
             foldouts.conditionFoldout = EditorWindowTools.EditorGUILayoutFoldout("Conditions", "Conditions that must be true for trigger to fire.", foldouts.conditionFoldout);
             if (foldouts.conditionFoldout)
@@ -185,7 +186,7 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private void DrawActions()
+        protected virtual void DrawActions()
         {
             foldouts.actionFoldout = EditorWindowTools.EditorGUILayoutFoldout("Actions", "Perform these actions when trigger fires.", foldouts.actionFoldout);
             if (foldouts.actionFoldout)
@@ -230,7 +231,7 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private void ShowAddActionMenu()
+        protected virtual void ShowAddActionMenu()
         {
             var menu = new GenericMenu();
             if (showSetQuestStateAction) menu.AddDisabledItem(new GUIContent("Set Quest State")); else menu.AddItem(new GUIContent("Set Quest State"), false, AddSetQuestStateAction);
@@ -247,73 +248,73 @@ namespace PixelCrushers.DialogueSystem
             menu.ShowAsContext();
         }
 
-        private void AddSetQuestStateAction()
+        protected virtual void AddSetQuestStateAction()
         {
             showSetQuestStateAction = true;
             foldouts.questFoldout = true;
         }
 
-        private void AddLuaCodeAction()
+        protected virtual void AddLuaCodeAction()
         {
             showRunLuaCodeAction = true;
             foldouts.luaFoldout = true;
         }
 
-        private void AddPlaySequenceAction()
+        protected virtual void AddPlaySequenceAction()
         {
             showPlaySequenceAction = true;
             foldouts.sequenceFoldout = true;
         }
 
-        private void AddShowAlertAction()
+        protected virtual void AddShowAlertAction()
         {
             showAlertAction = true;
             foldouts.alertFoldout = true;
         }
 
-        private void AddSendMessagesAction()
+        protected virtual void AddSendMessagesAction()
         {
             showSendMessagesAction = true;
             foldouts.sendMessageFoldout = true;
         }
 
-        private void AddBarkAction()
+        protected virtual void AddBarkAction()
         {
             showBarkAction = true;
             foldouts.barkFoldout = true;
         }
 
-        private void AddConversationAction()
+        protected virtual void AddConversationAction()
         {
             showConversationAction = true;
             foldouts.conversationFoldout = true;
         }
 
-        private void AddSetActiveAction()
+        protected virtual void AddSetActiveAction()
         {
             showSetActiveAction = true;
             foldouts.setActiveFoldout = true;
         }
 
-        private void AddSetEnabledAction()
+        protected virtual void AddSetEnabledAction()
         {
             showSetEnabledAction = true;
             foldouts.setEnabledFoldout = true;
         }
 
-        private void AddShowAnimatorStatesAction()
+        protected virtual void AddShowAnimatorStatesAction()
         {
             showAnimatorStatesAction = true;
             foldouts.setAnimatorStateFoldout = true;
         }
 
-        private void AddUnityEventAction()
+        protected virtual void AddUnityEventAction()
         {
             showUnityEventAction = true;
             foldouts.unityEventFoldout = true;
         }
 
-        private void DrawQuestAction()
+        protected virtual void DrawQuestAction()
         {
             foldouts.questFoldout = EditorWindowTools.EditorGUILayoutFoldout("Set Quest State", "Set quest states.", foldouts.questFoldout, false);
             if (foldouts.questFoldout)
@@ -357,7 +358,7 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private void DrawLuaAction()
+        protected virtual void DrawLuaAction()
         {
             foldouts.luaFoldout = EditorWindowTools.EditorGUILayoutFoldout("Run Lua Code", "Run Lua code.", foldouts.luaFoldout, false);
             if (foldouts.luaFoldout)
@@ -384,7 +385,7 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private void DrawSequenceAction()
+        protected virtual void DrawSequenceAction()
         {
             foldouts.sequenceFoldout = EditorWindowTools.EditorGUILayoutFoldout("Play Sequence", "Play a sequence.", foldouts.sequenceFoldout, false);
             if (foldouts.sequenceFoldout)
@@ -422,7 +423,7 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private void DrawAlertAction()
+        protected virtual void DrawAlertAction()
         {
             foldouts.alertFoldout = EditorWindowTools.EditorGUILayoutFoldout("Show Alert", "Show an alert message.", foldouts.alertFoldout, false);
             if (foldouts.alertFoldout)
@@ -459,7 +460,7 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private void DrawBarkAction()
+        protected virtual void DrawBarkAction()
         {
             foldouts.barkFoldout = EditorWindowTools.EditorGUILayoutFoldout("Bark", "Bark.", foldouts.barkFoldout, false);
             if (foldouts.barkFoldout)
@@ -510,7 +511,7 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private void DrawConversationAction()
+        protected virtual void DrawConversationAction()
         {
             foldouts.conversationFoldout = EditorWindowTools.EditorGUILayoutFoldout("Start Conversation", "Start a conversation.", foldouts.conversationFoldout, false);
             if (foldouts.conversationFoldout)
@@ -549,7 +550,7 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private void DrawUnityEventAction()
+        protected virtual void DrawUnityEventAction()
         {
             foldouts.unityEventFoldout = EditorWindowTools.EditorGUILayoutFoldout("OnExecute() UnityEvent", "Connect other events in the Inspector.", foldouts.unityEventFoldout, false);
             if (foldouts.unityEventFoldout)
@@ -566,7 +567,7 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private void DrawSendMessageAction()
+        protected virtual void DrawSendMessageAction()
         {
             foldouts.sendMessageFoldout = EditorWindowTools.EditorGUILayoutFoldout("Send Messages", "Use SendMessage to call methods on one or more GameObjects.", foldouts.sendMessageFoldout, false);
             if (foldouts.sendMessageFoldout)
@@ -583,7 +584,7 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private void OnDrawSendMessageListHeader(Rect rect)
+        protected void OnDrawSendMessageListHeader(Rect rect)
         {
             var hd = 14f;
             var fw = (rect.width - hd) / 3;
@@ -592,7 +593,7 @@ namespace PixelCrushers.DialogueSystem
             EditorGUI.LabelField(new Rect(rect.x + hd + 2 * fw, rect.y, fw, rect.height), new GUIContent("Parameter", "Optional string parameter to pass to method."));
         }
 
-        private void OnDrawSendMessageListElement(Rect rect, int index, bool isActive, bool isFocused)
+        protected void OnDrawSendMessageListElement(Rect rect, int index, bool isActive, bool isFocused)
         {
             if (!(0 <= index && index < sendMessageList.count)) return;
             var element = sendMessageList.serializedProperty.GetArrayElementAtIndex(index);
@@ -602,7 +603,7 @@ namespace PixelCrushers.DialogueSystem
             EditorGUI.PropertyField(new Rect(rect.x + 2 * fw, rect.y, fw, EditorGUIUtility.singleLineHeight), element.FindPropertyRelative("parameter"), GUIContent.none, true);
         }
 
-        private void DrawSetActiveAction()
+        protected virtual void DrawSetActiveAction()
         {
             foldouts.setActiveFoldout = EditorWindowTools.EditorGUILayoutFoldout("Set GameObjects Active/Inactive", "Set GameObjects active or inactive.", foldouts.setActiveFoldout, false);
             if (foldouts.setActiveFoldout)
@@ -626,16 +627,16 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private const float ToggleWidth = 64;
+        protected const float ToggleWidth = 64;
 
-        private void OnDrawSetActiveListHeader(Rect rect)
+        protected void OnDrawSetActiveListHeader(Rect rect)
         {
             var hd = 14f;
             EditorGUI.LabelField(new Rect(rect.x + hd, rect.y, rect.width - hd - 2 - ToggleWidth, rect.height), new GUIContent("GameObject", "GameObject to set active/inactive."));
             EditorGUI.LabelField(new Rect(rect.x + rect.width - ToggleWidth, rect.y, ToggleWidth, rect.height), new GUIContent("State", "State to set the target GameObject."));
         }
 
-        private void OnDrawSetActiveListElement(Rect rect, int index, bool isActive, bool isFocused)
+        protected void OnDrawSetActiveListElement(Rect rect, int index, bool isActive, bool isFocused)
         {
             if (!(0 <= index && index < setActiveList.count)) return;
             var element = setActiveList.serializedProperty.GetArrayElementAtIndex(index);
@@ -643,7 +644,7 @@ namespace PixelCrushers.DialogueSystem
             EditorGUI.PropertyField(new Rect(rect.x + rect.width - ToggleWidth, rect.y, ToggleWidth, EditorGUIUtility.singleLineHeight), element.FindPropertyRelative("state"), GUIContent.none, true);
         }
 
-        private void DrawSetEnabledAction()
+        protected virtual void DrawSetEnabledAction()
         {
             foldouts.setEnabledFoldout = EditorWindowTools.EditorGUILayoutFoldout("Set Components Enabled/Disabled", "Set components active or inactive.", foldouts.setEnabledFoldout, false);
             if (foldouts.setEnabledFoldout)
@@ -667,14 +668,14 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private void OnDrawSetEnabledListHeader(Rect rect)
+        protected void OnDrawSetEnabledListHeader(Rect rect)
         {
             var hd = 14f;
             EditorGUI.LabelField(new Rect(rect.x + hd, rect.y, rect.width - hd - 2 - ToggleWidth, rect.height), new GUIContent("Component", "Component to set enabled/disabled."));
             EditorGUI.LabelField(new Rect(rect.x + rect.width - ToggleWidth, rect.y, ToggleWidth, rect.height), new GUIContent("State", "State to set the target component."));
         }
 
-        private void OnDrawSetEnabledListElement(Rect rect, int index, bool isEnabled, bool isFocused)
+        protected void OnDrawSetEnabledListElement(Rect rect, int index, bool isEnabled, bool isFocused)
         {
             if (!(0 <= index && index < setEnabledList.count)) return;
             var element = setEnabledList.serializedProperty.GetArrayElementAtIndex(index);
@@ -682,7 +683,7 @@ namespace PixelCrushers.DialogueSystem
             EditorGUI.PropertyField(new Rect(rect.x + rect.width - ToggleWidth, rect.y, ToggleWidth, EditorGUIUtility.singleLineHeight), element.FindPropertyRelative("state"), GUIContent.none, true);
         }
 
-        private void DrawSetAnimatorStateAction()
+        protected virtual void DrawSetAnimatorStateAction()
         {
             foldouts.setAnimatorStateFoldout = EditorWindowTools.EditorGUILayoutFoldout("Set Animator States", "Set Animator states on one or more GameObjects.", foldouts.setAnimatorStateFoldout, false);
             if (foldouts.setAnimatorStateFoldout)
@@ -706,7 +707,7 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private void OnDrawSetAnimatorStateListHeader(Rect rect)
+        protected void OnDrawSetAnimatorStateListHeader(Rect rect)
         {
             var hd = 14f;
             var fw = (rect.width - hd - ToggleWidth - 4) / 2;
@@ -715,7 +716,7 @@ namespace PixelCrushers.DialogueSystem
             EditorGUI.LabelField(new Rect(rect.x + rect.width - ToggleWidth, rect.y, ToggleWidth, rect.height), new GUIContent("Fade", "Crossfade duration in seconds."));
         }
 
-        private void OnDrawSetAnimatorStateListElement(Rect rect, int index, bool isEnabled, bool isFocused)
+        protected void OnDrawSetAnimatorStateListElement(Rect rect, int index, bool isEnabled, bool isFocused)
         {
             if (!(0 <= index && index < setAnimatorStateList.count)) return;
             var fw = (rect.width - ToggleWidth - 4) / 2;

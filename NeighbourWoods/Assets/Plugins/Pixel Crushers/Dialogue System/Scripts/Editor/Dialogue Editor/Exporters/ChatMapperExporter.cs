@@ -55,8 +55,8 @@ namespace PixelCrushers.DialogueSystem {
 			return string.Format("{0}{1}{2}", (es.bold ? 'b' : '-'), (es.italic ? 'i' : '-'), (es.underline ? 'u' : '-'));
 		}
 
-		private static Assets AssetsToCmp(DialogueDatabase database, bool exportActors, bool exportItems, bool exportLocations, bool exportVariables, bool exportConversations, bool includeCanvasRect) {
-			Assets assets = new Assets();
+		private static PixelCrushers.DialogueSystem.ChatMapper.Assets AssetsToCmp(DialogueDatabase database, bool exportActors, bool exportItems, bool exportLocations, bool exportVariables, bool exportConversations, bool includeCanvasRect) {
+            PixelCrushers.DialogueSystem.ChatMapper.Assets assets = new PixelCrushers.DialogueSystem.ChatMapper.Assets();
 			if (exportActors) assets.Actors = ActorsToCmp(database);
 			if (exportItems) assets.Items = ItemsToCmp(database);
 			if (exportLocations) assets.Locations = LocationsToCmp(database);

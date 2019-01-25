@@ -1,5 +1,5 @@
-#if UNITY_2017_1_OR_NEWER && !(UNITY_2017_3 && UNITY_WSA)
-// Copyright © Pixel Crushers. All rights reserved.
+#if UNITY_2017_1_OR_NEWER
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEngine.Playables;
@@ -18,7 +18,7 @@ namespace PixelCrushers.DialogueSystem
         {
             GameObject trackBinding = playerData as GameObject;
 
-            if (!trackBinding) return;
+            Transform actorTransform = (trackBinding != null) ? trackBinding.transform : null;
 
             int inputCount = playable.GetInputCount();
 
@@ -32,18 +32,18 @@ namespace PixelCrushers.DialogueSystem
                     StartConversationBehaviour input = inputPlayable.GetBehaviour();
                     if (Application.isPlaying)
                     {
-                        if (input.entryID <= 0)
+                        if (input.jumpToSpecificEntry && input.entryID > 0)
                         {
-                            DialogueManager.StartConversation(input.conversation, trackBinding.transform, input.conversant);
+                            DialogueManager.StartConversation(input.conversation, actorTransform, input.conversant, input.entryID);
                         }
                         else
                         {
-                            DialogueManager.StartConversation(input.conversation, trackBinding.transform, input.conversant, input.entryID);
+                            DialogueManager.StartConversation(input.conversation, actorTransform, input.conversant);
                         }
                     }
                     else
                     {
-                        var message = DialogueActor.GetActorName(trackBinding.transform) + " conversation: " + input.conversant;
+                        var message = "Conversation (" + DialogueActor.GetActorName(actorTransform) + "->" + DialogueActor.GetActorName(input.conversant) + "): " + input.conversation;
                         PreviewUI.ShowMessage(message, 2, 0);
                     }
                 }

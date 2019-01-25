@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System;
@@ -9,7 +9,9 @@ namespace PixelCrushers
     /// <summary>
     /// Saves the active/inactive state of a GameObject. This component should be
     /// on a different GameObject that's guaranteed to be active, or it won't
-    /// take effect.
+    /// take effect. When applying data (i.e., setting active/inactive state), if 
+    /// it activates an inactive target, it will call ApplyData on the target's
+    /// other savers.
     /// </summary>
     [AddComponentMenu("")]
     public class ActiveSaver : Saver
@@ -46,7 +48,18 @@ namespace PixelCrushers
             var data = SaveSystem.Deserialize<Data>(s, m_data);
             if (data == null) return;
             m_data = data;
+            var applyDataToOtherSavers = data.active && !gameObjectToWatch.activeSelf;
             gameObjectToWatch.SetActive(data.active);
+            if (applyDataToOtherSavers)
+            {
+                var savers = gameObjectToWatch.GetComponentsInChildren<Saver>();
+                for (int i = 0; i < savers.Length; i++)
+                {
+                    var saver = savers[i];
+                    if (saver == this || !saver.enabled) continue;
+                    saver.ApplyData(SaveSystem.currentSavedGameData.GetData(saver.key));
+                }
+            }
         }
 
     }

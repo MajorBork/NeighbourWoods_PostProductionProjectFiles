@@ -21,8 +21,7 @@ namespace Manager.Inventory
     {
         //public Items iteminInventory;
         [Header("Object Variables")]
-        public UIManager gameManagerUI;
-        public GameObject itemObject;
+        public GameManager gameManager;
         [Header("Bool Variables (do not touch)")]
         public bool inventoryShowing;
         public bool hasItem;
@@ -35,7 +34,7 @@ namespace Manager.Inventory
         void Start() // Use this for initialization
         {
             inventoryShowing = false;
-            gameManagerUI.inventoryCanvas.alpha = 0;
+            gameManager.uiManager.inventoryCanvas.alpha = 0;
         }
         void Update() // Update is called once per frame
         {
@@ -47,12 +46,15 @@ namespace Manager.Inventory
             UIManager.instance.GetRidOfItem();
         }
         #region Food Methods
+        /// <summary> Updates the food level for the player.
+        /// <para> It accesses the lua in the Dialogue System and add or takes away from the amount displayed in the inventory menu. </para>
+        /// </summary>
         public void UpdateFood()
         {
             int DSfood = DialogueLua.GetVariable("Food").asInt;
             masterFood = DSfood;
             Debug.Log("I have Food " + masterFood);
-            UIManager.instance.UpdateFoodText(masterFood);
+            gameManager.uiManager.instance.UpdateFoodText(masterFood);
         }
         #endregion
         #region Clue Methods
@@ -61,7 +63,7 @@ namespace Manager.Inventory
             int DSClue = DialogueLua.GetVariable("Clues").asInt;
             masterClue = DSClue;
             Debug.Log("I have Clue " + masterClue);
-            UIManager.instance.UpdateClueText(masterClue);
+            gameManager.uiManager.instance.UpdateClueText(masterClue);
         }
         #endregion
         #region Inventory Event Methods
@@ -77,15 +79,15 @@ namespace Manager.Inventory
         {
             if (inventoryVis)
             {
-                gameManagerUI.inventoryCanvas.DOFade(1, 0.3f);
+                gameManager.uiManager.inventoryCanvas.DOFade(1, 0.3f);
                 gameManagerUI.inventoryCanvas.interactable = true;
                 gameManagerUI.inventoryCanvas.blocksRaycasts = true;
             }
             else
             {
-                gameManagerUI.inventoryCanvas.DOFade(0, 0.3f);
-                gameManagerUI.inventoryCanvas.interactable = false;
-                gameManagerUI.inventoryCanvas.blocksRaycasts = false;
+                gameManager.uiManager.inventoryCanvas.DOFade(0, 0.3f);
+                gameManager.uiManager.inventoryCanvas.interactable = false;
+                gameManager.uiManager.inventoryCanvas.blocksRaycasts = false;
             }
         }
         #endregion

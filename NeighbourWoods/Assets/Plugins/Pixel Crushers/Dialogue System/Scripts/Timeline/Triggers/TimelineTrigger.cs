@@ -1,5 +1,5 @@
-﻿#if UNITY_2017_1_OR_NEWER && !(UNITY_2017_3 && UNITY_WSA)
-// Copyright © Pixel Crushers. All rights reserved.
+﻿#if UNITY_2017_1_OR_NEWER
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEngine.Playables;
@@ -65,17 +65,7 @@ namespace PixelCrushers.DialogueSystem
             if (enabled && (trigger == DialogueTriggerEvent.OnTriggerEnter)) TryStart(other.transform);
         }
 
-        public void OnTriggerEnter2D(Collider2D other)
-        {
-            if (enabled && (trigger == DialogueTriggerEvent.OnTriggerEnter)) TryStart(other.transform);
-        }
-
         public void OnTriggerExit(Collider other)
-        {
-            if (enabled && (trigger == DialogueTriggerEvent.OnTriggerExit)) TryStart(other.transform);
-        }
-
-        public void OnTriggerExit2D(Collider2D other)
         {
             if (enabled && (trigger == DialogueTriggerEvent.OnTriggerExit)) TryStart(other.transform);
         }
@@ -85,20 +75,34 @@ namespace PixelCrushers.DialogueSystem
             if (enabled && (trigger == DialogueTriggerEvent.OnCollisionEnter)) TryStart(collision.collider.transform);
         }
 
-        public void OnCollisionEnter2D(Collision2D collision)
-        {
-            if (enabled && (trigger == DialogueTriggerEvent.OnTriggerEnter)) TryStart(collision.collider.transform);
-        }
-
         public void OnCollisionExit(Collision collision)
         {
             if (enabled && (trigger == DialogueTriggerEvent.OnTriggerExit)) TryStart(collision.collider.transform);
+        }
+
+#if USE_PHYSICS2D || !UNITY_2018_1_OR_NEWER
+
+        public void OnTriggerEnter2D(Collider2D other)
+        {
+            if (enabled && (trigger == DialogueTriggerEvent.OnTriggerEnter)) TryStart(other.transform);
+        }
+
+        public void OnTriggerExit2D(Collider2D other)
+        {
+            if (enabled && (trigger == DialogueTriggerEvent.OnTriggerExit)) TryStart(other.transform);
+        }
+
+        public void OnCollisionEnter2D(Collision2D collision)
+        {
+            if (enabled && (trigger == DialogueTriggerEvent.OnTriggerEnter)) TryStart(collision.collider.transform);
         }
 
         public void OnCollisionExit2D(Collision2D collision)
         {
             if (enabled && (trigger == DialogueTriggerEvent.OnTriggerExit)) TryStart(collision.collider.transform);
         }
+
+#endif
 
         public void Awake()
         {

@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -26,7 +26,7 @@ namespace PixelCrushers
         [SerializeField]
         private Position m_position = Position.ScreenSpaceUI;
 
-        private void Awake()
+        private void OnEnable()
         {
             if (m_parent == null) m_parent = this.transform;
             for (int i = 0; i < m_prefabs.Length; i++)

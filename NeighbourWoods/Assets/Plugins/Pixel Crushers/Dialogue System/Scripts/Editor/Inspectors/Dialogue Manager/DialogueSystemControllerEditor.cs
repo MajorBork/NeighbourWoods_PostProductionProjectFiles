@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEditor;
@@ -372,11 +372,21 @@ namespace PixelCrushers.DialogueSystem
                 try
                 {
                     EditorWindowTools.EditorGUILayoutBeginGroup();
+                    var dontDestroyOnLoadProperty = serializedObject.FindProperty("dontDestroyOnLoad");
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("allowOnlyOneInstance"), true);
-                    EditorGUILayout.PropertyField(serializedObject.FindProperty("dontDestroyOnLoad"), true);
+                    var previousDontDestroyOnLoadValue = dontDestroyOnLoadProperty.boolValue;
+                    EditorGUILayout.PropertyField(dontDestroyOnLoadProperty, true);
+                    if (previousDontDestroyOnLoadValue == true && dontDestroyOnLoadProperty.boolValue == false)
+                    {
+                        if (!VerifyDisableDontDestroyOnLoad())
+                        {
+                            dontDestroyOnLoadProperty.boolValue = true;
+                        }
+                    }
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("preloadResources"), true);
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("instantiateDatabase"), true);
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("includeSimStatus"), true);
+                    EditorGUILayout.PropertyField(serializedObject.FindProperty("allowSimultaneousConversations"), true);
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("dialogueTimeMode"), true);
                     EditorGUILayout.PropertyField(serializedObject.FindProperty("debugLevel"), true);
                 }
@@ -385,6 +395,35 @@ namespace PixelCrushers.DialogueSystem
                     EditorWindowTools.EditorGUILayoutEndGroup();
                 }
             }
+        }
+
+        private bool VerifyDisableDontDestroyOnLoad()
+        {
+            var controller = target as DialogueSystemController;
+            if (controller == null) return true;
+            var inputDeviceManager = controller.GetComponent<InputDeviceManager>();
+            var dontDestroyInputDeviceManager = (inputDeviceManager != null && inputDeviceManager.singleton);
+            var saveSystem = controller.GetComponent<SaveSystem>();
+            if (saveSystem != null && dontDestroyInputDeviceManager)
+            {
+                EditorUtility.DisplayDialog("Can't Untick Don't Destroy On Load", "The Dialogue Manager has a Save System component, which always sets the GameObject to Don't Destroy On Load. Before unticking this checkbox, move the Save System to a different GameObject. Also untick the Input Device Manager's Singleton checkbox, which also sets Don't Destroy On Load.", "OK");
+                return false;
+            }
+            else if (saveSystem != null)
+            {
+                EditorUtility.DisplayDialog("Can't Untick Don't Destroy On Load", "The Dialogue Manager has a Save System component, which always sets the GameObject to Don't Destroy On Load. Before unticking this checkbox, move the Save System to a different GameObject.", "OK");
+                return false;
+            }
+            else if (dontDestroyInputDeviceManager)
+            {
+                if (EditorUtility.DisplayDialog("Unticking Don't Destroy On Load", "The Input Device Manager's Singleton checkbox is ticked, which will also set this GameObject to Don't Destroy On Load. Untick its Singleton checkbox too?", "Yes", "No"))
+                {
+                    Undo.RecordObject(inputDeviceManager, "Untick Singleton");
+                    inputDeviceManager.singleton = false;
+                }
+                return true;
+            }
+            return true;
         }
 
     }

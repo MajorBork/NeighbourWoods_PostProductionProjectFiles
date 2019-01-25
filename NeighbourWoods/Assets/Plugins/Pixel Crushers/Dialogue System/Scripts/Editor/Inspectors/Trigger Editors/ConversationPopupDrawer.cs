@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEditor;
@@ -26,7 +26,7 @@ namespace PixelCrushers.DialogueSystem
             // Set up property drawer:
             EditorGUI.BeginProperty(position, GUIContent.none, prop);
             position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label);
-
+            
             // Show database field if specified:
             showReferenceDatabase = (attribute as ConversationPopupAttribute).showReferenceDatabase;
             if (EditorTools.selectedDatabase == null) EditorTools.SetInitialDatabaseIfNull();

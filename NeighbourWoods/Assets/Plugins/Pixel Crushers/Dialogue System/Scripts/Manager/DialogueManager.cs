@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -34,7 +34,7 @@ namespace PixelCrushers.DialogueSystem
         /// Returns <c>true</c> if the singleton has found or created an instance.
         /// </summary>
         /// <value><c>true</c> if has instance; otherwise, <c>false</c>.</value>
-        public static bool hasInstance { get { return m_instance != null; } }
+        public static bool hasInstance { get { return instance != null; } }
 
         /// <summary>
         /// Gets the database manager.

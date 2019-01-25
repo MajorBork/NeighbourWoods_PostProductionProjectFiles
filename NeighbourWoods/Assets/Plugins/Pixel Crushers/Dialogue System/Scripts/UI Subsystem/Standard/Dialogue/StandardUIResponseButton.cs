@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -81,13 +81,13 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        public void Awake()
+        public virtual void Awake()
         {
             if (button == null) button = GetComponent<UnityEngine.UI.Button>();
             if (button == null) Debug.LogWarning("Dialogue System: Response button '" + name + "' is missing a Unity UI Button component!", this);
         }
 
-        public void Start()
+        public virtual void Start()
         {
             if (button != null) button.onClick.AddListener(OnClick);
         }
@@ -95,7 +95,7 @@ namespace PixelCrushers.DialogueSystem
         /// <summary>
         /// Sets the button's text using the specified formatted text.
         /// </summary>
-        public void SetFormattedText(FormattedText formattedText)
+        public virtual void SetFormattedText(FormattedText formattedText)
         {
             if (formattedText == null) return;
             text = UITools.GetUIFormattedText(formattedText);
@@ -105,7 +105,7 @@ namespace PixelCrushers.DialogueSystem
         /// <summary>
         /// Sets the button's text using plain text.
         /// </summary>
-        public void SetUnformattedText(string unformattedText)
+        public virtual void SetUnformattedText(string unformattedText)
         {
             text = unformattedText;
             SetColor(defaultColor);
@@ -119,7 +119,7 @@ namespace PixelCrushers.DialogueSystem
         /// <summary>
         /// Handles a button click by calling the response handler.
         /// </summary>
-        public void OnClick()
+        public virtual void OnClick()
         {
             if (target != null) target.SendMessage("OnClick", response, SendMessageOptions.RequireReceiver);
         }

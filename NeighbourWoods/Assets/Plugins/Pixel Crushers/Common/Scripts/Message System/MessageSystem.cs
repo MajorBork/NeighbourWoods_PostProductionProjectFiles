@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections.Generic;
@@ -45,6 +45,9 @@ namespace PixelCrushers
         private static List<ListenerInfo> s_listenerInfo = new List<ListenerInfo>();
 
         private static Pool<ListenerInfo> s_listenerInfoPool = new Pool<ListenerInfo>();
+
+        private static HashSet<GameObject> s_sendersToLog = new HashSet<GameObject>();
+        private static HashSet<GameObject> s_listenersToLog = new HashSet<GameObject>();
 
         private static bool s_sendInEditMode = false;
 
@@ -205,6 +208,53 @@ namespace PixelCrushers
         }
 
         /// <summary>
+        /// Log a debug message when this object sends a message.
+        /// </summary>
+        public static void LogWhenSendingMessages(GameObject sender)
+        {
+            if (sender == null) return;
+            s_sendersToLog.Add(sender);
+        }
+
+        /// <summary>
+        /// Stop logging debug messages when this object sends a message.
+        /// </summary>
+        public static void StopLoggingWhenSendingMessages(GameObject sender)
+        {
+            if (sender == null) return;
+            s_sendersToLog.Remove(sender);
+        }
+
+        /// <summary>
+        /// Log a debug message when this listener receives a message.
+        /// </summary>
+        public static void LogWhenReceivingMessages(GameObject listener)
+        {
+            if (listener == null) return;
+            s_listenersToLog.Add(listener);
+        }
+
+        /// <summary>
+        /// Stop logging debug messages when this listener receives a message.
+        /// </summary>
+        public static void StopLoggingWhenReceivingMessages(GameObject listener)
+        {
+            if (listener == null) return;
+            s_listenersToLog.Add(listener);
+        }
+
+        private static bool ShouldLogSender(object sender)
+        {
+            return (sender is GameObject && s_sendersToLog.Contains(sender as GameObject)) ||
+                (sender is Component && s_sendersToLog.Contains((sender as Component).gameObject));
+        }
+
+        private static bool ShouldLogReceiver(IMessageHandler receiver)
+        {
+            return (receiver is Component && s_listenersToLog.Contains((receiver as Component).gameObject));
+        }
+
+        /// <summary>
         /// Sends a message to listeners.
         /// </summary>
         /// <param name="sender">Object/info about object that's sending the message.</param>
@@ -215,7 +265,7 @@ namespace PixelCrushers
         public static void SendMessageWithTarget(object sender, object target, string message, string parameter, params object[] values)
         {
             if (!(Application.isPlaying || sendInEditMode)) return;
-            if (debug) Debug.Log("MessageSystem.SendMessage(sender=" + sender +
+            if (debug || ShouldLogSender(sender)) Debug.Log("MessageSystem.SendMessage(sender=" + sender +
                 ((target == null) ? string.Empty : (" target=" + target)) +
                 ": " + message + "," + parameter + ")");
             var messageArgs = new MessageArgs(sender, target, message, parameter, values); // struct passed on stack; no heap allocated.
@@ -226,6 +276,12 @@ namespace PixelCrushers
                 {
                     try
                     {
+                        if (ShouldLogReceiver(x.listener))
+                        {
+                            Debug.Log("MessageSystem.SendMessage(sender=" + sender +
+                                ((target == null) ? string.Empty : (" target=" + target)) +
+                                ": " + message + "," + parameter + ")");
+                        }
                         x.listener.OnMessage(messageArgs);
                     }
                     catch (System.Exception e)

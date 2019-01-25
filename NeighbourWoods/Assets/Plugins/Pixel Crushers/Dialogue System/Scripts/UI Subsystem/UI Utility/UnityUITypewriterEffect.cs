@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEngine.Events;
@@ -224,6 +224,7 @@ namespace PixelCrushers.DialogueSystem
                 MonoBehaviour controller = GetComponentInParent<UnityUIDialogueUI>();
                 if (controller == null) controller = DialogueManager.instance;
                 coroutineController = controller;
+                if (coroutineController == null) coroutineController = this;
             }
             typewriterCoroutine = coroutineController.StartCoroutine(Play(fromIndex));
         }

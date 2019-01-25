@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -18,7 +18,7 @@ namespace PixelCrushers.Wrappers
         [TextArea(1,50)]
         private string m_note;
 
-        public string note { get { return m_note; } }
+        public string note { get { return m_note; } set { m_note = value; } }
 #else
         private void Awake()
         {

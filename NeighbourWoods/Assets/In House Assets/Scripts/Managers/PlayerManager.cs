@@ -35,8 +35,6 @@ namespace Manager.Player
         public UIManager gameManagerUI;
         [Tooltip("The variable that references the AudioManager Script on the GameManager object")]
         public AudioManager audioManager;
-        [Tooltip("The variable that references the LevelManager Script on the GameManager object")]
-        public LevelManager levelManager;
         [Tooltip("The variable that references the GameManager Script on the GameManager object")]
         public GameManager gameManager;
         [Tooltip("The PostProcessing Profile of smellOVision variable")]
@@ -75,7 +73,7 @@ namespace Manager.Player
         private float speedSmoothVelocity;
         public float currentSpeed;
         public bool isStill;
-        [Tooltip("")]
+        [Tooltip("Gets rid of the cursor")]
         public bool lockCursor;
         [Tooltip("The variable that references the transform of the playerCamera")]
         public Transform playerCameraTransform;
@@ -344,43 +342,43 @@ namespace Manager.Player
             {
                 if (Input.GetKeyDown(KeyCode.Alpha1))
                 {
-                    levelManager.UpdateTimeToMorningDay1();
-                    StartCoroutine(levelManager.TeleportPlayer());
+                    gameManager.levelManager.UpdateTimeToMorningDay1();
+                    StartCoroutine(gameManager.levelManager.TeleportPlayer());
                 }
                 if (Input.GetKeyDown(KeyCode.Alpha2))
                 {
-                    levelManager.UpdateTimeToMiddayDay1();
-                    StartCoroutine(levelManager.TeleportPlayer());
+                    gameManager.levelManager.UpdateTimeToMiddayDay1();
+                    StartCoroutine(gameManager.levelManager.TeleportPlayer());
                 }
                 if (Input.GetKeyDown(KeyCode.Alpha3))
                 {
-                    levelManager.UpdateTimeToAfternoonDay1();
-                    StartCoroutine(levelManager.TeleportPlayer());
+                    gameManager.levelManager.UpdateTimeToAfternoonDay1();
+                    StartCoroutine(gameManager.levelManager.TeleportPlayer());
                 }
                 if (Input.GetKeyDown(KeyCode.Alpha4))
                 {
-                    levelManager.UpdateTimeToEveningDay1();
-                    StartCoroutine(levelManager.TeleportPlayer());
+                    gameManager.levelManager.UpdateTimeToEveningDay1();
+                    StartCoroutine(gameManager.levelManager.TeleportPlayer());
                 }
                 if (Input.GetKeyDown(KeyCode.Alpha5))
                 {
-                    levelManager.UpdateTimeToMorningDay2();
-                    StartCoroutine(levelManager.TeleportPlayer());
+                    gameManager.levelManager.UpdateTimeToMorningDay2();
+                    StartCoroutine(gameManager.levelManager.TeleportPlayer());
                 }
                 if (Input.GetKeyDown(KeyCode.Alpha6))
                 {
-                    levelManager.UpdateTimeToMiddayDay2();
-                    StartCoroutine(levelManager.TeleportPlayer());
+                    gameManager.levelManager.UpdateTimeToMiddayDay2();
+                    StartCoroutine(gameManager.levelManager.TeleportPlayer());
                 }
                 if (Input.GetKeyDown(KeyCode.Alpha7))
                 {
-                    levelManager.UpdateTimeToAfternoonDay2();
-                    StartCoroutine(levelManager.TeleportPlayer());
+                    gameManager.levelManager.UpdateTimeToAfternoonDay2();
+                    StartCoroutine(gameManager.levelManager.TeleportPlayer());
                 }
                 if (Input.GetKeyDown(KeyCode.Alpha8))
                 {
-                    levelManager.UpdateTimeToEveningDay2();
-                    StartCoroutine(levelManager.TeleportPlayer());
+                    gameManager.levelManager.UpdateTimeToEveningDay2();
+                    StartCoroutine(gameManager.levelManager.TeleportPlayer());
                 }
             }
         }
@@ -390,7 +388,8 @@ namespace Manager.Player
         {
             if (Input.GetButtonDown("Escape"))
             {
-                gameManagerUI.GoToMenu();
+                gameManager.uiManager.GoToMenu();
+                //gameManagerUI.GoToMenu();
             }
         }
         #endregion

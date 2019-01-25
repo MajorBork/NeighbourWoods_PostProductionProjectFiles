@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 #if !(USE_NLUA || OVERRIDE_LUA)
 using UnityEngine;
@@ -73,15 +73,14 @@ namespace PixelCrushers.DialogueSystem
         /// </param>
         public static void AddChatMapperVariables(DialogueDatabase database, List<DialogueDatabase> loadedDatabases)
         {
-            if (database != null)
-            {
-                AddToTable<Actor>("Actor", database.actors, loadedDatabases);
-                AddToTable<Item>("Item", database.items, loadedDatabases);
-                AddToTable<Location>("Location", database.locations, loadedDatabases);
-                AddToVariableTable(database.variables, loadedDatabases);
-                AddToConversationTable(database.conversations, loadedDatabases);
-                if (!string.IsNullOrEmpty(database.globalUserScript)) Lua.Run(database.globalUserScript, DialogueDebug.logInfo);
-            }
+            if (database == null) return;
+            var first = (loadedDatabases == null || loadedDatabases.Count == 0);
+            AddToTable<Actor>("Actor", database.actors, loadedDatabases, first);
+            AddToTable<Item>("Item", database.items, loadedDatabases, first);
+            AddToTable<Location>("Location", database.locations, loadedDatabases, first);
+            AddToVariableTable(database.variables, loadedDatabases, first);
+            AddToConversationTable(database.conversations, loadedDatabases, first);
+            if (!string.IsNullOrEmpty(database.globalUserScript)) Lua.Run(database.globalUserScript, DialogueDebug.logInfo);
         }
 
         /// <summary>
@@ -121,6 +120,35 @@ namespace PixelCrushers.DialogueSystem
             SetVariable("Conversant", conversantName);
             SetVariable("ActorIndex", StringToTableIndex(string.IsNullOrEmpty(actorIndex) ? actorName : actorIndex));
             SetVariable("ConversantIndex", StringToTableIndex(string.IsNullOrEmpty(conversantIndex) ? actorName : conversantIndex));
+        }
+
+        /// <summary>
+        /// Returns the SimStatus of a dialogue entry, or a blank string if Include Sim Status isn't ticked.
+        /// </summary>
+        public static string GetSimStatus(DialogueEntry dialogueEntry)
+        {
+            return (dialogueEntry != null) ? GetSimStatus(dialogueEntry.conversationID, dialogueEntry.id) : string.Empty;
+        }
+
+        /// <summary>
+        /// Returns the SimStatus of a dialogue entry, or a blank string if Include Sim Status isn't ticked.
+        /// </summary>
+        public static string GetSimStatus(int conversationID, int entryID)
+        {
+            if (includeSimStatus)
+            {
+                bool luaExceptionOccurred = false;
+                try
+                {
+                    return Lua.Run(string.Format("return Conversation[{0}].Dialog[{1}].SimStatus", new System.Object[] { conversationID, entryID }), false, true).asString;
+                }
+                catch (System.Exception)
+                {
+                    luaExceptionOccurred = true;
+                }
+                if (luaExceptionOccurred && DialogueDebug.logErrors) Debug.LogError(string.Format("{0}: The Lua exception above indicates a dialogue database inconsistency. Is an invalid conversation ID recorded in a dialogue entry? Is the database loaded?", new System.Object[] { DialogueDebug.Prefix }));
+            }
+            return string.Empty;
         }
 
         /// <summary>
@@ -204,63 +232,134 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private static void AddToTable<T>(string arrayName, List<T> assets, List<DialogueDatabase> loadedDatabases) where T : Asset
+        private static void AddToTable<T>(string arrayName, List<T> assets, List<DialogueDatabase> loadedDatabases, bool addRaw) where T : Asset
         {
+            // Note: Optimized: Overwrite existing values.
+            Lua.wasInvoked = true;
+            LuaTable assetTable = Lua.environment.GetValue(arrayName) as LuaTable;
+            if (assetTable == null) return;
+
             for (int i = 0; i < assets.Count; i++)
             {
                 var asset = assets[i];
-                if (!DialogueDatabase.Contains(loadedDatabases, asset))
+                var assetIndex = StringToTableIndex(asset.Name);
+                LuaTable fieldTable = new LuaTable();
+                for (int j = 0; j < asset.fields.Count; j++)
                 {
-                    SetFields(string.Format("{0}[\"{1}\"]", new System.Object[] { arrayName, StringToTableIndex(asset.Name) }), asset.fields);
+                    var field = asset.fields[j];
+                    var fieldIndex = StringToTableIndex(field.title);
+                    fieldTable.AddRaw(fieldIndex, GetFieldLuaValue(field));
+                }
+                if (addRaw)
+                {
+                    assetTable.AddRaw(assetIndex, fieldTable);
+                }
+                else
+                {
+                    assetTable.SetKeyValue(new LuaString(assetIndex), fieldTable);
                 }
             }
         }
 
-        private static void AddToVariableTable(List<Variable> variables, List<DialogueDatabase> loadedDatabases)
+        private static void AddToVariableTable(List<Variable> variables, List<DialogueDatabase> loadedDatabases, bool addRaw)
         {
+            // Note: Optimized: Overwrite existing values.
+            Lua.wasInvoked = true;
+            LuaTable assetTable = Lua.environment.GetValue("Variable") as LuaTable;
+            if (assetTable == null) return;
             for (int i = 0; i < variables.Count; i++)
             {
                 var variable = variables[i];
-                if (!DialogueDatabase.Contains(loadedDatabases, variable))
+                string variableIndex = StringToTableIndex(variable.Name);
+                if (addRaw)
                 {
-                    Lua.Run(string.Format("Variable[\"{0}\"] = {1}", new System.Object[] { StringToTableIndex(variable.Name), ValueAsString(variable.Type, variable.InitialValue) }), DialogueDebug.logInfo);
+                    assetTable.AddRaw(variableIndex, GetVariableLuaValue(variable));
+                }
+                else
+                {
+                    assetTable.SetNameValue(variableIndex, GetVariableLuaValue(variable));
                 }
             }
         }
 
-        public static void AddToConversationTable(List<Conversation> conversations, List<DialogueDatabase> loadedDatabases)
+        public static void AddToConversationTable(List<Conversation> conversations, List<DialogueDatabase> loadedDatabases, bool addRaw = false)
         {
+            // Note: Optimized: Overwrite existing values.
+            Lua.wasInvoked = true;
+            LuaTable conversationTable = Lua.environment.GetValue("Conversation") as LuaTable;
+            if (conversationTable == null) return;
+
             for (int i = 0; i < conversations.Count; i++)
             {
                 var conversation = conversations[i];
-                if (!DialogueDatabase.Contains(loadedDatabases, conversation))
+
+                // Add fields to new conversation field table:
+                LuaTable fieldTable = new LuaTable();
+                for (int j = 0; j < conversation.fields.Count; j++)
                 {
-                    SetFields(string.Format("Conversation[{0}]", new System.Object[] { conversation.id }), conversation.fields, "Dialog = {}");
+                    var field = conversation.fields[j];
+                    var fieldIndex = StringToTableIndex(field.title);
+                    fieldTable.AddRaw(fieldIndex, GetFieldLuaValue(field));
+                }
+
+                // Add Dialog SimStatus sub-table as a field to the new conversation field table:
+                if (includeSimStatus)
+                {
+                    LuaTable dialogTable = new LuaTable();
+                    for (int j = 0; j < conversation.dialogueEntries.Count; j++)
+                    {
+                        var dialogueEntry = conversation.dialogueEntries[j];
+                        // [NOTE] To reduce Lua memory use, we only record SimStatus of dialogue entries:
+                        var simStatusTable = new LuaTable();
+                        simStatusTable.AddRaw("SimStatus", new LuaString("Untouched"));
+                        dialogTable.AddRaw(dialogueEntry.id, simStatusTable);
+                    }
+                    fieldTable.AddRaw("Dialog", dialogTable);
+                }
+
+                // Add conversation to Conversation[] table:
+                if (addRaw)
+                {
+                    conversationTable.AddRaw(conversation.id, fieldTable);
+                }
+                else
+                {
+                    conversationTable.SetKeyValue(new LuaNumber(conversation.id), fieldTable);
                 }
             }
-            if (!includeSimStatus) return;
-            for (int i = 0; i < conversations.Count; i++)
+        }
+
+        private static LuaValue GetFieldLuaValue(Field field)
+        {
+            if (field == null) return LuaNil.Nil;
+            switch (field.type)
             {
-                var conversation = conversations[i];
-                StringBuilder sb = new StringBuilder();
-                sb.AppendFormat("Conversation[{0}].Dialog = {{ ", new System.Object[] { conversation.id });
-                for (int j = 0; j < conversation.dialogueEntries.Count; j++)
-                {
-                    var dialogueEntry = conversation.dialogueEntries[j];
-                    // [NOTE] To reduce Lua memory use, we only record SimStatus of dialogue entries:
-                    sb.AppendFormat("[{0}]={{SimStatus=\"Untouched\"}},", new System.Object[] { dialogueEntry.id });
-                }
-                sb.Append('}');
-                bool luaExceptionOccurred = false;
-                try
-                {
-                    Lua.Run(sb.ToString(), false, true);
-                }
-                catch (System.Exception)
-                {
-                    luaExceptionOccurred = true;
-                }
-                if (luaExceptionOccurred && DialogueDebug.logErrors) Debug.LogError(string.Format("{0}: LuaExceptions above indicate a dialogue database inconsistency. Is an invalid conversation ID recorded in a dialogue entry?", new System.Object[] { DialogueDebug.Prefix }));
+                case FieldType.Actor:
+                case FieldType.Item:
+                case FieldType.Location:
+                case FieldType.Number:
+                    return new LuaNumber(Tools.StringToFloat(field.value));
+                case FieldType.Boolean:
+                    return Tools.StringToBool(field.value) ? LuaBoolean.True : LuaBoolean.False;
+                default:
+                    return new LuaString(field.value);
+            }
+        }
+
+        private static LuaValue GetVariableLuaValue(Variable field)
+        {
+            if (field == null) return LuaNil.Nil;
+            switch (field.Type)
+            {
+                case FieldType.Actor:
+                case FieldType.Item:
+                case FieldType.Location:
+                case FieldType.Number:
+                    return new LuaNumber(Tools.StringToFloat(field.InitialValue));
+                case FieldType.Boolean:
+                    return Tools.StringToBool(field.InitialValue) ? LuaBoolean.True : LuaBoolean.False;
+                default:
+                    return new LuaString(field.InitialValue);
             }
         }
 

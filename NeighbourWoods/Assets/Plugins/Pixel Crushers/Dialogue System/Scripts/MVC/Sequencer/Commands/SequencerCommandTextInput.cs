@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -27,7 +27,7 @@ namespace PixelCrushers.DialogueSystem.SequencerCommands
         /// </summary>
         public void Start()
         {
-            Transform textFieldUIObject = GetSubject(0);
+            Transform textFieldUIObject = FindTextFieldUIObject();
             if (textFieldUIObject != null)
             {
                 bool currentlyActive = textFieldUIObject.gameObject.activeSelf;
@@ -54,6 +54,34 @@ namespace PixelCrushers.DialogueSystem.SequencerCommands
                 if (DialogueDebug.logWarnings) Debug.Log(string.Format("{0}: Sequencer: TextInput(): Text Field UI not found on a GameObject '{1}'. Did you specify the correct GameObject name?", new System.Object[] { DialogueDebug.Prefix, GetParameter(0) }));
                 Stop();
             }
+        }
+
+        private Transform FindTextFieldUIObject() // Gives preference to name match in current dialogue UI.
+        {
+            var uiScript = DialogueManager.dialogueUI as MonoBehaviour;
+            if (uiScript != null)
+            {
+                var obj = FindChildRecursive(uiScript.transform, GetParameter(0));
+                if (obj != null)
+                {
+                    return obj;
+                }
+            }
+            return GetSubject(0);
+        }
+
+        private Transform FindChildRecursive(Transform t, string childName)
+        {
+            if (t != null && t.gameObject.activeInHierarchy)
+            {
+                if (string.Equals(t.name, childName)) return t;
+                foreach (Transform child in t)
+                {
+                    var result = FindChildRecursive(child, childName);
+                    if (result != null) return result;
+                }
+            }
+            return null;
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -166,6 +166,12 @@ namespace PixelCrushers.DialogueSystem
             this.npcResponses = npcResponses;
             this.pcResponses = pcResponses;
             this.isGroup = isGroup;
+        }
+
+        public DialogueEntry GetRandomNPCEntry()
+        {
+            return hasNPCResponse ? npcResponses[UnityEngine.Random.Range((int)0, (int)npcResponses.Length)].destinationEntry : null;
+
         }
 
     }

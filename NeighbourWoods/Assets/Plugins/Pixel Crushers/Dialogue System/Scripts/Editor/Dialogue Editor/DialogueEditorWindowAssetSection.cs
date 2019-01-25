@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEditor;
@@ -196,7 +196,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                     field.value = clipboardField.value;
                     field.type = clipboardField.type;
                 }
-                else {
+                else
+                {
                     fields.Add(new Field(clipboardField));
                 }
             }
@@ -210,7 +211,17 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             {
                 if (!string.IsNullOrEmpty(templateField.title))
                 {
-                    if (!Field.FieldExists(fields, templateField.title))
+                    var field = Field.Lookup(fields, templateField.title);
+                    if (field != null)
+                    {
+                        if (field.type != templateField.type)
+                        {
+                            field.type = templateField.type;
+                            //field.value = string.Empty;
+                            field.typeString = string.Empty;
+                        }
+                    }
+                    else
                     {
                         fields.Add(new Field(templateField));
                     }
@@ -236,7 +247,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                 asset.Name = string.Format("New {0} {1}", itemTypeLabel, asset.id);
                 Field.SetValue(asset.fields, "Is Item", !template.treatItemsAsQuests);
             }
-            else {
+            else
+            {
                 asset.Name = string.Format("New {0} {1}", typeof(T).Name, asset.id);
             }
             assets.Add(asset);
@@ -256,7 +268,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             {
                 InitializeConversation(asset as Conversation);
             }
-            else {
+            else
+            {
                 asset.Name = string.Format("New {0} {1}", typeLabel, asset.id);
             }
             assets.Add(asset);

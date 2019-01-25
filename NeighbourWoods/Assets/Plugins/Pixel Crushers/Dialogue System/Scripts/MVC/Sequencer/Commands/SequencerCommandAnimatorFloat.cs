@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -38,7 +38,7 @@ namespace PixelCrushers.DialogueSystem.SequencerCommands
             targetValue = GetParameterAsFloat(1, 1);
             subject = GetSubject(2);
             duration = GetParameterAsFloat(3, 0);
-            if (DialogueDebug.logInfo) Debug.Log(string.Format("{0}: Sequencer: AnimatorFloat({1}, {2}, {3}, {4})", new System.Object[] { DialogueDebug.Prefix, animatorParameter, targetValue, subject, duration }));
+            if (DialogueDebug.logInfo) Debug.Log(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}: Sequencer: AnimatorFloat({1}, {2}, {3}, {4})", new System.Object[] { DialogueDebug.Prefix, animatorParameter, targetValue, subject, duration }));
 
             // Check the parameters:
             if (subject == null)

@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections.Generic;
@@ -94,6 +94,13 @@ namespace PixelCrushers.DialogueSystem
 
         public SyncInfo syncInfo = new SyncInfo();
 
+        // Cache dictionary by asset name to speed up searches:
+        private Dictionary<string, Actor> actorNameCache = null;
+        private Dictionary<string, Item> itemNameCache = null;
+        private Dictionary<string, Location> locationNameCache = null;
+        private Dictionary<string, Variable> variableNameCache = null;
+        private Dictionary<string, Conversation> conversationTitleCache = null;
+
         /// <summary>
         /// Gets the ID of the first player character in the actor list.
         /// </summary>
@@ -153,6 +160,49 @@ namespace PixelCrushers.DialogueSystem
             return IsPlayerID(actorID) ? CharacterType.PC : CharacterType.NPC;
         }
 
+        #region Cache
+
+        private void SetupCaches()
+        {
+            if (actorNameCache == null) actorNameCache = CreateCache<Actor>(actors);
+            if (itemNameCache == null) itemNameCache = CreateCache<Item>(items);
+            if (locationNameCache == null) locationNameCache = CreateCache<Location>(locations);
+            if (variableNameCache == null) variableNameCache = CreateCache<Variable>(variables);
+            if (conversationTitleCache == null) conversationTitleCache = CreateCache<Conversation>(conversations);
+        }
+
+        private Dictionary<string, T> CreateCache<T>(List<T> assets) where T : Asset
+        {
+            var useTitle = typeof(T) == typeof(Conversation);
+            var cache = new Dictionary<string, T>();
+            if (Application.isPlaying) // Only build cache at runtime so Dialogue Editor doesn't have to worry about updating it.
+            {
+                for (int i = 0; i < assets.Count; i++)
+                {
+                    var asset = assets[i];
+                    var key = useTitle ? (asset as Conversation).Title : asset.Name;
+                    if (!cache.ContainsKey(key)) cache.Add(key, asset);
+                }
+            }
+            return cache;
+        }
+
+        /// <summary>
+        /// Dialogue databases maintain a quick lookup cache of assets by Name (by Title
+        /// for conversations). If you change asset Names/Titles manually, call this
+        /// method to sync the cache with the new values.
+        /// </summary>
+        public void ResetCache()
+        {
+            actorNameCache = null;
+            itemNameCache = null;
+            locationNameCache = null;
+            variableNameCache = null;
+            conversationTitleCache = null;
+        }
+
+        #endregion
+
         /// <summary>
         /// Gets the actor by name.
         /// </summary>
@@ -164,7 +214,9 @@ namespace PixelCrushers.DialogueSystem
         /// </param>
         public Actor GetActor(string actorName)
         {
-            return actors.Find(a => string.Equals(a.Name, actorName));
+            //return actors.Find(a => string.Equals(a.Name, actorName));
+            SetupCaches();
+            return actorNameCache.ContainsKey(actorName) ? actorNameCache[actorName] : actors.Find(a => string.Equals(a.Name, actorName));
         }
 
         /// <summary>
@@ -188,7 +240,9 @@ namespace PixelCrushers.DialogueSystem
         /// <param name="itemName">The item's name (the value of the Name field).</param>
         public Item GetItem(string itemName)
         {
-            return items.Find(i => string.Equals(i.Name, itemName));
+            //return items.Find(i => string.Equals(i.Name, itemName));
+            SetupCaches();
+            return itemNameCache.ContainsKey(itemName) ? itemNameCache[itemName] : items.Find(i => string.Equals(i.Name, itemName));
         }
 
         /// <summary>
@@ -212,7 +266,9 @@ namespace PixelCrushers.DialogueSystem
         /// <param name="locationName">The location's name (value of the Name field).</param>
         public Location GetLocation(string locationName)
         {
-            return locations.Find(l => string.Equals(l.Name, locationName));
+            //return locations.Find(l => string.Equals(l.Name, locationName));
+            SetupCaches();
+            return locationNameCache.ContainsKey(locationName) ? locationNameCache[locationName] : locations.Find(l => string.Equals(l.Name, locationName));
         }
 
         /// <summary>
@@ -236,7 +292,9 @@ namespace PixelCrushers.DialogueSystem
         /// <param name="variableName">Variable name.</param>
         public Variable GetVariable(string variableName)
         {
-            return variables.Find(v => string.Equals(v.Name, variableName));
+            //return variables.Find(v => string.Equals(v.Name, variableName));
+            SetupCaches();
+            return variableNameCache.ContainsKey(variableName) ? variableNameCache[variableName] : variables.Find(v => string.Equals(v.Name, variableName));
         }
 
         /// <summary>
@@ -257,6 +315,10 @@ namespace PixelCrushers.DialogueSystem
         /// </param>
         public void AddConversation(Conversation conversation)
         {
+            SetupCaches();
+            var title = conversation.Title;
+            //--- Removed for speed: if (DialogueDebug.logInfo) Debug.Log("Dialogue System: Add Conversation: " + title);
+            if (!conversationTitleCache.ContainsKey(title)) conversationTitleCache.Add(title, conversation);
             conversations.Add(conversation);
             LinkUtility.SortOutgoingLinks(this, conversation);
         }
@@ -272,7 +334,9 @@ namespace PixelCrushers.DialogueSystem
         /// </param>
         public Conversation GetConversation(string conversationTitle)
         {
-            return conversations.Find(c => string.Equals(c.Title, conversationTitle));
+            //return conversations.Find(c => string.Equals(c.Title, conversationTitle));
+            SetupCaches();
+            return conversationTitleCache.ContainsKey(conversationTitle) ? conversationTitleCache[conversationTitle] : conversations.Find(c => string.Equals(c.Title, conversationTitle));
         }
 
         /// <summary>
@@ -352,25 +416,48 @@ namespace PixelCrushers.DialogueSystem
                 AddGlobalUserScript(database);
 
                 // Only add assets that aren't already in the database (as determined by name/ID as appropriate for the asset type):
-                foreach (var actor in database.actors)
+                //--- Optimized to use cache:
+                //foreach (var actor in database.actors)
+                //{
+                //    if (!Contains(this, actor)) actors.Add(actor);
+                //}
+                //foreach (var item in database.items)
+                //{
+                //    if (!Contains(this, item)) items.Add(item);
+                //}
+                //foreach (var location in database.locations)
+                //{
+                //    if (!Contains(this, location)) locations.Add(location);
+                //}
+                //foreach (var variable in database.variables)
+                //{
+                //    if (!Contains(this, variable)) variables.Add(variable);
+                //}
+                //foreach (var conversation in database.conversations)
+                //{
+                //    if (!Contains(this, conversation)) conversations.Add(conversation);
+                //}
+                SetupCaches();
+                AddAssets<Actor>(actors, database.actors, actorNameCache);
+                AddAssets<Item>(items, database.items, itemNameCache);
+                AddAssets<Location>(locations, database.locations, locationNameCache);
+                AddAssets<Variable>(variables, database.variables, variableNameCache);
+                AddAssets<Conversation>(conversations, database.conversations, conversationTitleCache);
+            }
+        }
+
+        private void AddAssets<T>(List<T> myAssets, List<T> assetsToAdd, Dictionary<string, T> cache) where T : Asset
+        {
+            var useTitle = typeof(T) == typeof(Conversation);
+            for (int i = 0; i < assetsToAdd.Count; i++)
+            {
+                var asset = assetsToAdd[i];
+                var key = useTitle ? (asset as Conversation).Title : asset.Name;
+                if (!cache.ContainsKey(key))
                 {
-                    if (!Contains(this, actor)) actors.Add(actor);
-                }
-                foreach (var item in database.items)
-                {
-                    if (!Contains(this, item)) items.Add(item);
-                }
-                foreach (var location in database.locations)
-                {
-                    if (!Contains(this, location)) locations.Add(location);
-                }
-                foreach (var variable in database.variables)
-                {
-                    if (!Contains(this, variable)) variables.Add(variable);
-                }
-                foreach (var conversation in database.conversations)
-                {
-                    if (!Contains(this, conversation)) conversations.Add(conversation);
+                    cache.Add(key, asset);
+                    myAssets.Add(asset);
+                    //--- Removed for speed: if (DialogueDebug.logInfo) Debug.Log("Dialogue System: Add " + typeof(T).Name + ": " + key);
                 }
             }
         }
@@ -419,11 +506,19 @@ namespace PixelCrushers.DialogueSystem
         {
             if (database != null)
             {
-                actors.RemoveAll(x => database.actors.Contains(x));
-                items.RemoveAll(x => database.items.Contains(x));
-                locations.RemoveAll(x => database.locations.Contains(x));
-                variables.RemoveAll(x => database.variables.Contains(x));
-                conversations.RemoveAll(x => database.conversations.Contains(x));
+                //--- Optimized to use cache:
+                //actors.RemoveAll(x => database.actors.Contains(x));
+                //items.RemoveAll(x => database.items.Contains(x));
+                //locations.RemoveAll(x => database.locations.Contains(x));
+                //variables.RemoveAll(x => database.variables.Contains(x));
+                //conversations.RemoveAll(x => database.conversations.Contains(x));
+
+                SetupCaches();
+                RemoveAssets<Actor>(actors, database.actors, actorNameCache);
+                RemoveAssets<Item>(items, database.items, itemNameCache);
+                RemoveAssets<Location>(locations, database.locations, locationNameCache);
+                RemoveAssets<Variable>(variables, database.variables, variableNameCache);
+                RemoveAssets<Conversation>(conversations, database.conversations, conversationTitleCache);
             }
         }
 
@@ -440,11 +535,50 @@ namespace PixelCrushers.DialogueSystem
         {
             if (database != null)
             {
-                actors.RemoveAll(x => (database.actors.Contains(x) && !Contains(keep, x)));
-                items.RemoveAll(x => (database.items.Contains(x) && !Contains(keep, x)));
-                locations.RemoveAll(x => (database.locations.Contains(x) && !Contains(keep, x)));
-                variables.RemoveAll(x => (database.variables.Contains(x) && !Contains(keep, x)));
-                conversations.RemoveAll(x => (database.conversations.Contains(x) && !Contains(keep, x)));
+                //--- Optimized to use cache:
+                //actors.RemoveAll(x => (database.actors.Contains(x) && !Contains(keep, x)));
+                //items.RemoveAll(x => (database.items.Contains(x) && !Contains(keep, x)));
+                //locations.RemoveAll(x => (database.locations.Contains(x) && !Contains(keep, x)));
+                //variables.RemoveAll(x => (database.variables.Contains(x) && !Contains(keep, x)));
+                //conversations.RemoveAll(x => (database.conversations.Contains(x) && !Contains(keep, x)));
+
+                SetupCaches();
+                RemoveAssets<Actor>(actors, database.actors, actorNameCache, keep);
+                RemoveAssets<Item>(items, database.items, itemNameCache, keep);
+                RemoveAssets<Location>(locations, database.locations, locationNameCache, keep);
+                RemoveAssets<Variable>(variables, database.variables, variableNameCache, keep);
+                RemoveAssets<Conversation>(conversations, database.conversations, conversationTitleCache, keep);
+            }
+        }
+
+        private void RemoveAssets<T>(List<T> myAssets, List<T> assetsToRemove, Dictionary<string, T> cache) where T : Asset
+        {
+            var useTitle = typeof(T) == typeof(Conversation);
+            for (int i = 0; i < assetsToRemove.Count; i++)
+            {
+                var asset = assetsToRemove[i];
+                var key = useTitle ? (asset as Conversation).Title : asset.Name;
+                if (!cache.ContainsKey(key))
+                {
+                    cache.Remove(key);
+                    myAssets.Remove(cache[key]);
+                }
+            }
+        }
+
+        private void RemoveAssets<T>(List<T> myAssets, List<T> assetsToRemove, Dictionary<string, T> cache, List<DialogueDatabase> keep) where T : Asset
+        {
+            var useTitle = typeof(T) == typeof(Conversation);
+            for (int i = 0; i < assetsToRemove.Count; i++)
+            {
+                var asset = assetsToRemove[i];
+                if (Contains(keep, asset)) continue;
+                var key = useTitle ? (asset as Conversation).Title : asset.Name;
+                if (!cache.ContainsKey(key))
+                {
+                    cache.Remove(key);
+                    myAssets.Remove(cache[key]);
+                }
             }
         }
 
@@ -458,6 +592,7 @@ namespace PixelCrushers.DialogueSystem
             locations.Clear();
             variables.Clear();
             conversations.Clear();
+            ResetCache();
         }
 
         /// <summary>
@@ -476,6 +611,7 @@ namespace PixelCrushers.DialogueSystem
         /// </summary>
         public void SyncActors()
         {
+            ResetCache();
             if (!syncInfo.syncActors || syncInfo.syncActorsDatabase == null) return;
             actors.RemoveAll(x => (syncInfo.syncActorsDatabase.GetActor(x.id) != null));
             foreach (Actor actor in syncInfo.syncActorsDatabase.actors)
@@ -489,6 +625,7 @@ namespace PixelCrushers.DialogueSystem
         /// </summary>
         public void SyncItems()
         {
+            ResetCache();
             if (!syncInfo.syncItems || syncInfo.syncItemsDatabase == null) return;
             items.RemoveAll(x => (syncInfo.syncItemsDatabase.GetItem(x.id) != null));
             foreach (Item item in syncInfo.syncItemsDatabase.items)
@@ -502,6 +639,7 @@ namespace PixelCrushers.DialogueSystem
         /// </summary>
         public void SyncLocations()
         {
+            ResetCache();
             if (!syncInfo.syncLocations || syncInfo.syncLocationsDatabase == null) return;
             locations.RemoveAll(x => (syncInfo.syncLocationsDatabase.GetLocation(x.id) != null));
             foreach (Location location in syncInfo.syncLocationsDatabase.locations)
@@ -515,6 +653,7 @@ namespace PixelCrushers.DialogueSystem
         /// </summary>
         public void SyncVariables()
         {
+            ResetCache();
             if (!syncInfo.syncVariables || syncInfo.syncVariablesDatabase == null) return;
             variables.RemoveAll(x => (syncInfo.syncVariablesDatabase.GetVariable(x.id) != null));
             foreach (Variable variable in syncInfo.syncVariablesDatabase.variables)
@@ -597,25 +736,47 @@ namespace PixelCrushers.DialogueSystem
             {
                 return false;
             }
-            else if (asset is Actor)
+            //--- Optimized to use cache:
+            //else if (asset is Actor)
+            //{
+            //    return ContainsName<Actor>(database.actors, asset.Name);
+            //}
+            //else if (asset is Item)
+            //{
+            //    return ContainsName<Item>(database.items, asset.Name);
+            //}
+            //else if (asset is Location)
+            //{
+            //    return ContainsName<Location>(database.locations, asset.Name);
+            //}
+            //else if (asset is Variable)
+            //{
+            //    return ContainsName<Variable>(database.variables, asset.Name);
+            //}
+            //else if (asset is Conversation)
+            //{
+            //    return ContainsTitle(database.conversations, (asset as Conversation).Title);
+            //}
+            database.SetupCaches();
+            if (asset is Actor)
             {
-                return ContainsName<Actor>(database.actors, asset.Name);
+                return database.actorNameCache.ContainsKey(asset.Name);
             }
             else if (asset is Item)
             {
-                return ContainsName<Item>(database.items, asset.Name);
+                return database.itemNameCache.ContainsKey(asset.Name);
             }
             else if (asset is Location)
             {
-                return ContainsName<Location>(database.locations, asset.Name);
+                return database.locationNameCache.ContainsKey(asset.Name);
             }
             else if (asset is Variable)
             {
-                return ContainsName<Variable>(database.variables, asset.Name);
+                return database.variableNameCache.ContainsKey(asset.Name);            
             }
             else if (asset is Conversation)
             {
-                return ContainsTitle(database.conversations, (asset as Conversation).Title);
+                return database.conversationTitleCache.ContainsKey((asset as Conversation).Title);
             }
             else
             {
@@ -701,6 +862,31 @@ namespace PixelCrushers.DialogueSystem
             return GetEntrytag(conversation, entry, entrytagFormat);
         }
 
+        /// <summary>
+        /// Gets the entrytaglocal string (localized version) of a dialogue entry.
+        /// </summary>
+        /// <param name="conversation">Dialogue entry's conversation.</param>
+        /// <param name="entry">Dialogue entry.</param>
+        /// <param name="entrytagFormat">Entrytag format.</param>
+        /// <returns>Localized entrytag.</returns>
+        public string GetEntrytaglocal(Conversation conversation, DialogueEntry entry, EntrytagFormat entrytagFormat)
+        {
+            return GetEntrytag(conversation, entry, entrytagFormat) + "_" + Localization.language;
+        }
+
+        /// <summary>
+        /// Gets the entrytaglocal string (localized version) of a dialogue entry.
+        /// </summary>
+        /// <param name="conversationID">Dialogue entry's conversation.</param>
+        /// <param name="dialogueEntryID">Dialogue entry.</param>
+        /// <param name="entrytagFormat">Entrytag format.</param>
+        /// <returns>Localized entrytag.</returns>
+        public string GetEntrytaglocal(int conversationID, int dialogueEntryID, EntrytagFormat entrytagFormat)
+        {
+            var conversation = GetConversation(conversationID);
+            var entry = (conversation != null) ? conversation.GetDialogueEntry(dialogueEntryID) : null;
+            return GetEntrytaglocal(conversation, entry, entrytagFormat);
+        }
     }
 
 }

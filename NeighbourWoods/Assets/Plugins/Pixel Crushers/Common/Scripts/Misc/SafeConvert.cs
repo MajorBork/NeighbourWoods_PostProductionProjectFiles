@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 namespace PixelCrushers
 {
@@ -28,7 +28,7 @@ namespace PixelCrushers
 		public static float ToFloat(string s)
         {
             float result;
-            return float.TryParse(s, out result) ? result : 0;
+            return float.TryParse(s, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out result) ? result : 0;
         }
 
         private const string CommaTag = "%COMMA%";

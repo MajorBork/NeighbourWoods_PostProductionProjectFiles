@@ -1,5 +1,5 @@
 ﻿#if USE_ARTICY
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Text;
@@ -27,6 +27,8 @@ namespace PixelCrushers.DialogueSystem.Articy.Articy_2_4
         private static ExportType _currentExport = null; // Convenience variable so we don't have to pass it everywhere.
 
         private static ConverterPrefs _prefs = null; // Convenience variable.
+
+        private static int documentDepth = 0;
 
         public static bool IsSchema(string xmlFilename)
         {
@@ -56,6 +58,7 @@ namespace PixelCrushers.DialogueSystem.Articy.Articy_2_4
             _convertSlotsAs = (prefs != null) ? prefs.ConvertSlotsAs : ConverterPrefs.ConvertSlotsModes.DisplayName;
             _currentExport = export;
             _prefs = prefs;
+            documentDepth = 0;
             ArticyData articyData = new ArticyData();
             articyData.project.createdOn = export.CreatedOn.ToString();
             articyData.project.creatorTool = export.CreatorTool;
@@ -132,6 +135,7 @@ namespace PixelCrushers.DialogueSystem.Articy.Articy_2_4
 
         private static void ConvertDocument(ArticyData articyData, DocumentType document)
         {
+            // Note: Not used. Documents appear as dialogues in XML, so use ConvertDialogue.
             if (document != null)
             {
                 articyData.dialogues.Add(document.Id, new ArticyData.Dialogue(document.Id, document.TechnicalName,
@@ -521,23 +525,36 @@ namespace PixelCrushers.DialogueSystem.Articy.Articy_2_4
 
         private static void ConvertHierarchy(ArticyData articyData, HierarchyType hierarchy)
         {
-            articyData.hierarchy.node = ConvertNode(hierarchy.Node);
+            articyData.hierarchy.node = ConvertNode(articyData, hierarchy.Node);
         }
 
-        private static ArticyData.Node ConvertNode(NodeType node)
+        private static ArticyData.Node ConvertNode(ArticyData articyData, NodeType node)
         {
             ArticyData.Node articyDataNode = new ArticyData.Node();
             if (node != null)
             {
+                // Record node type:
                 articyDataNode.id = node.IdRef;
                 articyDataNode.type = ConvertNodeType(node.Type);
+
+                // If a dialogue and inside a document, record that it's in a document:
+                if (articyDataNode.type == ArticyData.NodeType.Dialogue && documentDepth > 0)
+                {
+                    var dialogue = articyData.dialogues.ContainsKey(node.IdRef) ? articyData.dialogues[node.IdRef] : null;
+                    if (dialogue != null) dialogue.isDocument = true;
+                }
+
+                // Recurse through children:
                 if (node.Node != null)
                 {
+                    if (node.Type == "Document") documentDepth++;
                     foreach (NodeType childNode in node.Node)
                     {
-                        articyDataNode.nodes.Add(ConvertNode(childNode));
+                        articyDataNode.nodes.Add(ConvertNode(articyData, childNode));
                     }
+                    if (node.Type == "Document") documentDepth--;
                 }
+
             }
             return articyDataNode;
         }

@@ -1,7 +1,5 @@
 ﻿using UnityEngine;
-using System.Collections;
 using UnityEditor;
-using System;
 
 namespace PixelCrushers.DialogueSystem
 {
@@ -28,14 +26,8 @@ namespace PixelCrushers.DialogueSystem
 
         private float StringToFloat(string s, int defaultValue)
         {
-            try
-            {
-                return (float)System.Convert.ToDouble(s);
-            }
-            catch (FormatException)
-            {
-                return defaultValue;
-            }
+            float result;
+            return float.TryParse(s, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out result) ? result : defaultValue;
         }
 
     }

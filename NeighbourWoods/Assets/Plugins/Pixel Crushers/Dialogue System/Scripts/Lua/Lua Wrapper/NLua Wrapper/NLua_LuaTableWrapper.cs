@@ -1,5 +1,5 @@
 #if USE_NLUA
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 // This version of LuaTableWrapper works with NLua.
 using UnityEngine;

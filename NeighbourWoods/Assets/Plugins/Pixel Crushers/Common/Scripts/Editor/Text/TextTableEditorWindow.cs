@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEditor;
@@ -67,13 +67,10 @@ namespace PixelCrushers
         private void OnEnable()
         {
             s_instance = this;
-            #if UNITY_4_6 || UNITY_4_7 || UNITY_5_0
-            title = WindowTitle;
-            #else
             titleContent.text = "Text Table";
-            #endif
             m_needRefreshLists = true;
             Undo.undoRedoPerformed += Repaint;
+            if (m_textTableInstanceID != 0) Selection.activeObject = EditorUtility.InstanceIDToObject(m_textTableInstanceID);
             OnSelectionChange();
         }
 
@@ -104,7 +101,8 @@ namespace PixelCrushers
             ResetFieldsTab();
             m_needRefreshLists = true;
             m_serializedObject = (newTable != null) ? new SerializedObject(newTable) : null;
-            if (m_textTable.languages.Count == 0) m_textTable.AddLanguage("Default");
+            if (m_textTable != null && m_textTable.languages.Count == 0) m_textTable.AddLanguage("Default");
+            m_textTableInstanceID = (newTable != null) ? newTable.GetInstanceID() : 0;
         }
 
         private void OnGUI()

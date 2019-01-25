@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -42,6 +42,8 @@ namespace PixelCrushers
             onTriggerExit.Invoke(other.gameObject);
         }
 
+#if USE_PHYSICS2D || !UNITY_2018_1_OR_NEWER
+
         protected virtual void OnTriggerEnter2D(Collider2D other)
         {
             if (!IsInTagMask(other.tag)) return;
@@ -53,6 +55,8 @@ namespace PixelCrushers
             if (!IsInTagMask(other.tag)) return;
             onTriggerExit.Invoke(other.gameObject);
         }
+
+#endif
 
     }
 

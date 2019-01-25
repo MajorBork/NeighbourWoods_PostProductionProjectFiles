@@ -1,9 +1,11 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
 namespace PixelCrushers
 {
+
+#if USE_PHYSICS2D || !UNITY_2018_1_OR_NEWER
 
     /// <summary>
     /// Provides more routines for Physics2D.
@@ -11,20 +13,11 @@ namespace PixelCrushers
     public static class MorePhysics2D
     {
 
-        /// Platform-dependent wrapper for Physics2D.raycastsStartInColliders (pre 5.2.1p2) and
-        /// queriesStartInColliders (5.2.1p2+).
+        /// <summary>
+        /// Wrapper for Physics2D.queriesStartInColliders.
+        /// </summary>
         public static bool queriesStartInColliders
         {
-#if UNITY_4_6 || UNITY_5_0 || UNITY_5_1 || UNITY_5_2_1
-            get
-            {
-                return Physics2D.raycastsStartInColliders;
-            }
-            set
-            {
-                Physics2D.raycastsStartInColliders = value;
-            }
-#else
             get
             {
                 return Physics2D.queriesStartInColliders;
@@ -33,7 +26,6 @@ namespace PixelCrushers
             {
                 Physics2D.queriesStartInColliders = value;
             }
-#endif
         }
 
         /// <summary>
@@ -59,10 +51,6 @@ namespace PixelCrushers
         /// <summary>
         /// Runs a nonallocating linecast, ignoring the source.
         /// </summary>
-        /// <param name="source"></param>
-        /// <param name="destination"></param>
-        /// <param name="layerMask"></param>
-        /// <returns></returns>
         public static GameObject Raycast2DWithoutSelf(Transform source, Transform destination, LayerMask layerMask)
         {
             var start2D = new Vector2(source.position.x, source.position.y);
@@ -81,5 +69,51 @@ namespace PixelCrushers
         }
 
     }
+
+#else
+
+    /// <summary>
+    /// Provides more routines for Physics2D.
+    /// </summary>
+    public static class MorePhysics2D
+    {
+
+
+        /// <summary>
+        /// Stub wrapper for Physics2D.queriesStartInColliders.
+        /// </summary>
+        public static bool queriesStartInColliders
+        {
+            get { return false; }
+            set { }
+        }
+
+        /// <summary>
+        /// Stub for size of the preallocated array for nonallocating raycasts.
+        /// </summary>
+        public static int maxRaycastResults
+        {
+            get { return 0; }
+            set { }
+        }
+
+        /// <summary>
+        /// Stub for running a nonallocating linecast, ignoring the source.
+        /// </summary>
+        public static GameObject Raycast2DWithoutSelf(Transform source, Transform destination, LayerMask layerMask)
+        {
+            LogUsePhysics2DWarning();
+            return null;
+        }
+
+        public static void LogUsePhysics2DWarning()
+        {
+            if (Debug.isDebugBuild) Debug.LogWarning("To enable Physics2D support for a Pixel Crushers asset, add the Scripting Define Symbol 'USE_PHYSICS2D'.");
+        }
+
+    }
+
+#endif
+
 
 }

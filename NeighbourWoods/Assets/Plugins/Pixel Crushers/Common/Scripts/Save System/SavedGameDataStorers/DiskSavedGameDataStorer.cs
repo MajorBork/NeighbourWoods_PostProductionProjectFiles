@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections.Generic;
@@ -43,6 +43,7 @@ namespace PixelCrushers
         public bool debug
         {
             get { return m_debug && Debug.isDebugBuild; }
+            set { m_debug = value; }
         }
 
         public void Start()

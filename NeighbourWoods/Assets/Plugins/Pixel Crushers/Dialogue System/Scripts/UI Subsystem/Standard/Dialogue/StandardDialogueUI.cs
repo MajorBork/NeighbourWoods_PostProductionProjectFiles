@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections.Generic;
@@ -15,6 +15,9 @@ namespace PixelCrushers.DialogueSystem
         public StandardUIAlertControls alertUIElements;
         public StandardUIDialogueControls conversationUIElements;
         public StandardUIQTEControls QTEIndicatorElements;
+
+        [Tooltip("Add an EventSystem if one isn't in the scene.")]
+        public bool addEventSystemIfNeeded = true;
 
         #endregion
 
@@ -48,7 +51,7 @@ namespace PixelCrushers.DialogueSystem
 
         private void VerifyAssignments()
         {
-            UITools.RequireEventSystem();
+            if (addEventSystemIfNeeded) UITools.RequireEventSystem();
             if (DialogueDebug.logWarnings)
             {
                 if (alertUIElements.alertText.gameObject == null) Debug.LogWarning("Dialogue System: No UI text element is assigned to Standard Dialogue UI's Alert UI Elements.", this);
@@ -60,7 +63,7 @@ namespace PixelCrushers.DialogueSystem
 #if UNITY_5_3 // SceneManager.sceneLoaded wasn't implemented for all Unity 5.3.x versions.
         public void OnLevelWasLoaded(int level)
         {
-            UITools.RequireEventSystem();
+            if (addEventSystemIfNeeded) UITools.RequireEventSystem();
         }
         public virtual void OnEnable() { }
         public virtual void OnDisable() { }
@@ -78,7 +81,7 @@ namespace PixelCrushers.DialogueSystem
 
         public void OnSceneLoaded(UnityEngine.SceneManagement.Scene scene, UnityEngine.SceneManagement.LoadSceneMode mode)
         {
-            UITools.RequireEventSystem();
+            if (addEventSystemIfNeeded) UITools.RequireEventSystem();
         }
 #endif
 
@@ -191,6 +194,13 @@ namespace PixelCrushers.DialogueSystem
         {
             conversationUIElements.standardSubtitleControls.UnfocusAll();
             base.ShowResponses(subtitle, responses, timeout);
+        }
+
+        public override void OnClick(object data)
+        {
+            conversationUIElements.standardMenuControls.MakeButtonsNonclickable();
+            base.OnClick(data);
+
         }
 
         #endregion

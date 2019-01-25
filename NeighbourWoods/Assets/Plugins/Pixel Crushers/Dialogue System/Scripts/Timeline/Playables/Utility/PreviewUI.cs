@@ -1,8 +1,7 @@
-﻿#if UNITY_2017_1_OR_NEWER && !(UNITY_2017_3 && UNITY_WSA)
-// Copyright © Pixel Crushers. All rights reserved.
+﻿#if UNITY_2017_1_OR_NEWER
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
-using System.Collections;
 
 namespace PixelCrushers.DialogueSystem
 {
@@ -13,54 +12,55 @@ namespace PixelCrushers.DialogueSystem
     /// only be accurately viewed at runtime.
     /// </summary>
     [AddComponentMenu("")] // No menu item. Only used internally.
+    [ExecuteInEditMode]
     public class PreviewUI : MonoBehaviour
     {
 
+        private string message;
+        private float endTime;
+        private int lineOffset;
+        private bool computedRect;
+        private Rect rect;
+
         public static void ShowMessage(string message, float duration, int lineOffset)
         {
-            var canvas = new GameObject("Editor Preview UI", typeof(Canvas), typeof(PreviewUI)).GetComponent<Canvas>();
-            canvas.gameObject.tag = "EditorOnly";
-            canvas.gameObject.hideFlags = HideFlags.DontSave;
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 9999;
-            var text = new GameObject("Preview Text", typeof(UnityEngine.UI.Text), typeof(UnityEngine.UI.Outline)).GetComponent<UnityEngine.UI.Text>();
-            text.rectTransform.localPosition = new Vector3(text.rectTransform.localPosition.x, text.rectTransform.localPosition.y + 20 * lineOffset, text.rectTransform.localPosition.z);
-            text.alignment = TextAnchor.MiddleCenter;
-            text.transform.SetParent(canvas.transform, false);
-            text.rectTransform.anchorMin = Vector2.zero;
-            text.rectTransform.anchorMax = Vector2.one;
-            canvas.GetComponent<PreviewUI>().ShowMessageOnInstance(message, duration);
+            var go = new GameObject("Editor Preview UI: " + message);
+            go.tag = "EditorOnly";
+            go.hideFlags = HideFlags.DontSave;
+            var previewUI = go.AddComponent<PreviewUI>();
+            previewUI.Show(message, duration, lineOffset);
         }
 
-        public void ShowMessageOnInstance(string message, float duration)
+        protected void Show(string message, float duration, int lineOffset)
         {
-            StartCoroutine(ShowMessageOnInstanceCoroutine(message, duration));
+            this.message = message;
+            this.lineOffset = lineOffset;
+            endTime = Time.realtimeSinceStartup + (Mathf.Approximately(0, duration) ? 2 : duration);
+            computedRect = false;
         }
 
-        public IEnumerator ShowMessageOnInstanceCoroutine(string message, float duration)
-        { 
-            var text = GetComponentInChildren<UnityEngine.UI.Text>();
-            if (text == null) yield break;
-            text.text = message;
-            var displayDuration = Mathf.Approximately(0, duration) ? 2 : duration;
-            var endTime = Time.realtimeSinceStartup + displayDuration;
-            while (Time.realtimeSinceStartup < endTime)
+        private void OnGUI()
+        {
+            if (!computedRect)
             {
-                yield return null;
+                computedRect = true;
+                var size = GUI.skin.label.CalcSize(new GUIContent(message));
+                rect = new Rect((Screen.width - size.x) / 2, (Screen.height - size.y) / 2 + lineOffset * size.y, size.x, size.y);
             }
-            if (Application.isEditor && !Application.isPlaying)
-            {
-                DestroyImmediate(gameObject);
-#if UNITY_EDITOR
-                UnityEditorInternal.InternalEditorUtility.RepaintAllViews();
-#endif
-            }
-            else
+            GUI.Label(rect, message);
+        }
+
+        private void Update()
+        {
+            if (Application.isPlaying)
             {
                 Destroy(gameObject);
             }
+            else if (Time.realtimeSinceStartup >= endTime)
+            {
+                DestroyImmediate(gameObject);
+            }
         }
-
     }
 }
 #endif

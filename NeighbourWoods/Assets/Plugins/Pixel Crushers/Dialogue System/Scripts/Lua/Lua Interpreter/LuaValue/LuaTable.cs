@@ -11,6 +11,10 @@ namespace Language.Lua
 
         private Dictionary<LuaValue, LuaValue> dict;
 
+        //[PixelCrushers] Cache key values for faster lookup:
+        private Dictionary<int, LuaValue> m_intKeyCache = new Dictionary<int, LuaValue>();
+        private Dictionary<string, LuaValue> m_stringKeyCache = new Dictionary<string, LuaValue>();
+
         public LuaTable() { }
 
         public LuaTable(LuaTable parent)
@@ -74,6 +78,49 @@ namespace Language.Lua
             }
 
             return "Table " + this.GetHashCode();
+        }
+
+        public List<LuaValue> List //[PixelCrushers]
+        {
+            get
+            {
+                if (this.list == null) this.list = new List<LuaValue>();
+                return this.list;
+            }
+        }
+
+        public Dictionary<LuaValue, LuaValue> Dict //[PixelCrushers]
+        {
+            get
+            {
+                if (this.dict == null) this.dict = new Dictionary<LuaValue, LuaValue>();
+                return this.dict;
+            }
+        }
+
+        public void AddRaw(string key, LuaValue value) //[PixelCrushers]
+        {
+            var keyValue = new LuaString(key);
+            Dict[keyValue] = value;
+            m_stringKeyCache[key] = keyValue;
+        }
+
+        public void AddRaw(int key, LuaValue value) //[PixelCrushers]
+        {
+            if (key == this.Length + 1)
+            {
+                this.AddValue(value);
+            }
+            else if (key > 0 && key <= this.Length)
+            {
+                this.list[key - 1] = value;
+            }
+            else
+            {
+                var keyValue = new LuaNumber(key);
+                Dict[keyValue] = value;
+                m_intKeyCache[key] = keyValue;
+            }
         }
 
         public IEnumerable<LuaValue> ListValues
@@ -206,7 +253,9 @@ namespace Language.Lua
                 return this.list[index - 1];
             }
 			//[PixelCrushers]
-			if (dict != null) {
+			if (dict != null)
+            {
+                if (m_intKeyCache.ContainsKey(index)) return dict[m_intKeyCache[index]];
 				return GetValue(index.ToString());
 			}
 
@@ -235,6 +284,8 @@ namespace Language.Lua
         public LuaValue GetKey(string key)
         {
             if (this.dict == null) return LuaNil.Nil;
+
+            if (m_stringKeyCache.ContainsKey(key)) return m_stringKeyCache[key];
 
             foreach (LuaValue value in this.dict.Keys)
             {
@@ -274,6 +325,8 @@ namespace Language.Lua
             {
                 this.dict.Remove(key);
             }
+
+            m_stringKeyCache.Remove(name);
         }
 
         public void SetKeyValue(LuaValue key, LuaValue value)
@@ -309,6 +362,29 @@ namespace Language.Lua
             }
 
             this.dict[key] = value;
+
+            //[PixelCrushers] Update caches:
+            int intValue;
+            if (GetIntValue(key, out intValue))
+            {
+                m_intKeyCache[intValue] = key;
+            }
+            else if (key is LuaString)
+            {
+                m_stringKeyCache[(key as LuaString).Text] = key;
+            }
+        }
+
+        private bool GetIntValue(LuaValue value, out int intValue)
+        {
+            var number = value as LuaNumber;
+            if (number != null && number.Number == (int)number.Number)
+            {
+                intValue = (int)number.Number;
+                return true;
+            }
+            intValue = 0;
+            return false;
         }
 
         private void RemoveKey(LuaValue key)
@@ -316,6 +392,17 @@ namespace Language.Lua
             if (key != LuaNil.Nil && this.dict != null && this.dict.ContainsKey(key))
             {
                 this.dict.Remove(key);
+            }
+
+            //[PixelCrushers] Update caches:
+            int intValue;
+            if (GetIntValue(key, out intValue))
+            {
+                m_intKeyCache.Remove(intValue);
+            }
+            else if (key is LuaString)
+            {
+                m_stringKeyCache.Remove((key as LuaString).Text);
             }
         }
 
@@ -432,6 +519,8 @@ namespace Language.Lua
             if (key == LuaNil.Nil)
             {
                 key = new LuaString(name);
+
+                m_stringKeyCache[name] = key; //[PixelCrushers]
             }
 
             if (this.dict == null)
@@ -441,5 +530,6 @@ namespace Language.Lua
 
             this.dict[key] = value;
         }
+
     }
 }

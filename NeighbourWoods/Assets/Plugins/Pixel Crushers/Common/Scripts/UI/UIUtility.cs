@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -15,12 +15,14 @@ namespace PixelCrushers
         {
             if (GameObject.FindObjectOfType<UnityEngine.EventSystems.EventSystem>() == null)
             {
-                new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem),
-                               typeof(UnityEngine.EventSystems.StandaloneInputModule)
-                                #if UNITY_4_6 || UNITY_4_7 || UNITY_5_0 || UNITY_5_1 || UNITY_5_2
-				               ,typeof(UnityEngine.EventSystems.TouchInputModule)
-                                #endif
-                               );
+                var eventSystem = new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem),
+                    typeof(UnityEngine.EventSystems.StandaloneInputModule)
+                    #if UNITY_4_6 || UNITY_4_7 || UNITY_5_0 || UNITY_5_1 || UNITY_5_2
+				    ,typeof(UnityEngine.EventSystems.TouchInputModule)
+                    #endif
+                    );
+                var standaloneInputModule = eventSystem.GetComponent<UnityEngine.EventSystems.StandaloneInputModule>();
+                if (standaloneInputModule != null) standaloneInputModule.forceModuleActive = true;
             }
         }
 

@@ -1,5 +1,5 @@
 #if USE_NLUA
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 // This version of the Dialogue System's Lua wrapper class works with NLua.
 using UnityEngine;

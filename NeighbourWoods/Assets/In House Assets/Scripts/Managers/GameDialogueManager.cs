@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.Events;
 using TMPro;
 using DG.Tweening;
 using PixelCrushers.DialogueSystem;
@@ -62,7 +62,7 @@ namespace Manager.GameDialogue
                 GameEvents.ReportGameStateChange(GameState.FREE_ROAM);
             }
         }
-        // SendMessage(UpdateTime,,GameManager); Delay({{5}})
+
         #endregion
     }
     #region DialogueList Class

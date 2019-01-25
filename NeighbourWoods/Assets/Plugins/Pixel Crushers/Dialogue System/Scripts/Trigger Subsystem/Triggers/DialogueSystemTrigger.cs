@@ -1,7 +1,6 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
-using UnityEngine.Events;
 using System;
 using System.Collections;
 
@@ -335,22 +334,22 @@ namespace PixelCrushers.DialogueSystem
         /// playing, check the bark UI's IsPlaying property.
         /// </summary>
         /// <value>The sequencer.</value>
-        public Sequencer sequencer { get; private set; }
+        public Sequencer sequencer { get; protected set; }
 
         #endregion
 
-        #region Private Variables
+        #region Private/Protected Variables
 
-        private BarkHistory barkHistory;
-        private ConversationState cachedState = null;
-        private IBarkUI barkUI = null;
-        private float earliestTimeToAllowTriggerExit = 0;
-        private const float MarginToAllowTriggerExit = 0.2f;
-        private Coroutine monitorDistanceCoroutine = null;
-        private bool wasCursorVisible;
-        private CursorLockMode savedLockState;
-        private float preConversationTimeScale = 1;
-        private bool tryingToStart = false;
+        protected BarkHistory barkHistory;
+        protected ConversationState cachedState = null;
+        protected IBarkUI barkUI = null;
+        protected float earliestTimeToAllowTriggerExit = 0;
+        protected const float MarginToAllowTriggerExit = 0.2f;
+        protected Coroutine monitorDistanceCoroutine = null;
+        protected bool wasCursorVisible;
+        protected CursorLockMode savedLockState;
+        protected float preConversationTimeScale = 1;
+        protected bool tryingToStart = false;
 
         #endregion
 
@@ -360,6 +359,27 @@ namespace PixelCrushers.DialogueSystem
         {
             barkHistory = new BarkHistory(barkOrder);
             sequencer = null;
+        }
+
+        public virtual void Start()
+        {
+            if (trigger == DialogueSystemTriggerEvent.OnCollisionEnter ||
+                trigger == DialogueSystemTriggerEvent.OnCollisionExit ||
+                trigger == DialogueSystemTriggerEvent.OnTriggerEnter ||
+                trigger == DialogueSystemTriggerEvent.OnTriggerExit)
+            {
+                bool found = false;
+                if (GetComponent<Collider>() != null) found = true;
+#if USE_PHYSICS2D || !UNITY_2018_1_OR_NEWER
+                if (!found && GetComponent<Collider2D>() != null) found = true;
+#endif
+                if (!found && DialogueDebug.logWarnings) Debug.LogWarning("Dialogue System: Dialogue System Trigger is set to a mode that requires a collider, but it has no collider component.", this);
+            }
+            else if (trigger == DialogueSystemTriggerEvent.OnStart)
+            {
+                // Wait until end of frame to allow all other components to finish their Start() methods:
+                StartCoroutine(StartAtEndOfFrame());
+            }
         }
 
         public void OnBarkStart(Transform actor)
@@ -389,7 +409,7 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private IEnumerator ShowCursorAfterOneFrame()
+        protected IEnumerator ShowCursorAfterOneFrame()
         {
             yield return null;
             Cursor.visible = true;
@@ -447,14 +467,16 @@ namespace PixelCrushers.DialogueSystem
             if (enabled && (trigger == DialogueSystemTriggerEvent.OnTriggerEnter)) TryStart(other.transform);
         }
 
-        public void OnTriggerEnter2D(Collider2D other)
-        {
-            if (enabled && (trigger == DialogueSystemTriggerEvent.OnTriggerEnter)) TryStart(other.transform);
-        }
-
         public void OnTriggerExit(Collider other)
         {
             CheckOnTriggerExit(other.transform);
+        }
+
+#if USE_PHYSICS2D || !UNITY_2018_1_OR_NEWER
+
+        public void OnTriggerEnter2D(Collider2D other)
+        {
+            if (enabled && (trigger == DialogueSystemTriggerEvent.OnTriggerEnter)) TryStart(other.transform);
         }
 
         public void OnTriggerExit2D(Collider2D other)
@@ -462,7 +484,19 @@ namespace PixelCrushers.DialogueSystem
             CheckOnTriggerExit(other.transform);
         }
 
-        private void CheckOnTriggerExit(Transform otherTransform)
+        public void OnCollisionEnter2D(Collision2D collision)
+        {
+            if (enabled && (trigger == DialogueSystemTriggerEvent.OnTriggerEnter)) TryStart(collision.collider.transform);
+        }
+
+        public void OnCollisionExit2D(Collision2D collision)
+        {
+            if (enabled && (trigger == DialogueSystemTriggerEvent.OnTriggerExit)) TryStart(collision.collider.transform);
+        }
+
+#endif
+
+        protected void CheckOnTriggerExit(Transform otherTransform)
         {
             if (!enabled) return;
             if (stopConversationOnTriggerExit &&
@@ -484,35 +518,19 @@ namespace PixelCrushers.DialogueSystem
             if (enabled && (trigger == DialogueSystemTriggerEvent.OnCollisionEnter)) TryStart(collision.collider.transform);
         }
 
-        public void OnCollisionEnter2D(Collision2D collision)
-        {
-            if (enabled && (trigger == DialogueSystemTriggerEvent.OnTriggerEnter)) TryStart(collision.collider.transform);
-        }
-
         public void OnCollisionExit(Collision collision)
         {
             if (enabled && (trigger == DialogueSystemTriggerEvent.OnTriggerExit)) TryStart(collision.collider.transform);
         }
 
-        public void OnCollisionExit2D(Collision2D collision)
-        {
-            if (enabled && (trigger == DialogueSystemTriggerEvent.OnTriggerExit)) TryStart(collision.collider.transform);
-        }
-
-        public void Start()
-        {
-            // Waits one frame to allow all other components to finish their Start() methods.
-            if (trigger == DialogueSystemTriggerEvent.OnStart) StartCoroutine(StartAfterOneFrame());
-        }
-
-        private bool listenForOnDestroy = false;
+        protected bool listenForOnDestroy = false;
 
         public void OnEnable()
         {
             PersistentDataManager.RegisterPersistentData(gameObject);
             listenForOnDestroy = true;
             // Waits one frame to allow all other components to finish their OnEnable() methods.
-            if (trigger == DialogueSystemTriggerEvent.OnEnable) StartCoroutine(StartAfterOneFrame());
+            if (trigger == DialogueSystemTriggerEvent.OnEnable) StartCoroutine(StartAtEndOfFrame());
         }
 
         public void OnDisable()
@@ -542,9 +560,9 @@ namespace PixelCrushers.DialogueSystem
 
         #region Execution
 
-        private IEnumerator StartAfterOneFrame()
+        protected IEnumerator StartAtEndOfFrame()
         {
-            yield return null;
+            yield return new WaitForEndOfFrame();
             TryStart(null);
         }
 
@@ -594,7 +612,7 @@ namespace PixelCrushers.DialogueSystem
 
         #region Quest Action
 
-        private void DoQuestAction()
+        protected virtual void DoQuestAction()
         {
             if (string.IsNullOrEmpty(questName)) return;
             if (setQuestState) QuestLog.SetQuestState(questName, questState);
@@ -605,7 +623,7 @@ namespace PixelCrushers.DialogueSystem
 
         #region Lua Action
 
-        private void DoLuaAction()
+        protected virtual void DoLuaAction()
         {
             if (string.IsNullOrEmpty(luaCode)) return;
             Lua.Run(luaCode, DialogueDebug.logInfo);
@@ -615,7 +633,7 @@ namespace PixelCrushers.DialogueSystem
 
         #region Sequence Action
 
-        private void DoSequenceAction(Transform actor)
+        protected virtual void DoSequenceAction(Transform actor)
         {
             if (string.IsNullOrEmpty(sequence)) return;
             DialogueManager.PlaySequence(sequence, Tools.Select(sequenceSpeaker, transform), Tools.Select(sequenceListener, actor));
@@ -625,7 +643,7 @@ namespace PixelCrushers.DialogueSystem
 
         #region Alert Action
 
-        private void DoAlertAction()
+        protected virtual void DoAlertAction()
         {
             if (string.IsNullOrEmpty(alertMessage)) return;
             string localizedAlertMessage;
@@ -651,7 +669,7 @@ namespace PixelCrushers.DialogueSystem
 
         #region SendMessage Action
 
-        private void DoSendMessageActions()
+        protected virtual void DoSendMessageActions()
         {
             for (int i = 0; i < sendMessages.Length; i++)
             {
@@ -667,7 +685,7 @@ namespace PixelCrushers.DialogueSystem
 
         #region Bark Action
 
-        private void DoBarkAction(Transform actor)
+        protected virtual void DoBarkAction(Transform actor)
         {
             switch (barkSource)
             {
@@ -702,7 +720,7 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private Transform GetBarker(string conversation)
+        protected virtual Transform GetBarker(string conversation)
         {
             if (barker != null) return barker;
             if (!string.IsNullOrEmpty(conversation))
@@ -718,19 +736,19 @@ namespace PixelCrushers.DialogueSystem
             return this.transform;
         }
 
-        private string GetBarkerName()
+        protected virtual string GetBarkerName()
         {
             return DialogueActor.GetActorName(GetBarker((barkSource == BarkSource.Conversation) ? barkConversation : null));
         }
 
-        private void BarkCachedLine(Transform speaker, Transform listener)
+        protected virtual void BarkCachedLine(Transform speaker, Transform listener)
         {
             if (barkUI == null) barkUI = speaker.GetComponentInChildren(typeof(IBarkUI)) as IBarkUI;
             if (cachedState == null) PopulateCache(speaker, listener);
             BarkNextCachedLine(speaker, listener);
         }
 
-        private void PopulateCache(Transform speaker, Transform listener)
+        protected void PopulateCache(Transform speaker, Transform listener)
         {
             if (string.IsNullOrEmpty(barkConversation) && DialogueDebug.logWarnings) Debug.Log(string.Format("{0}: Bark (speaker={1}, listener={2}): conversation title is blank", new System.Object[] { DialogueDebug.Prefix, speaker, listener }), speaker);
             ConversationModel conversationModel = new ConversationModel(DialogueManager.masterDatabase, barkConversation, speaker, listener, DialogueManager.allowLuaExceptions, DialogueManager.isDialogueEntryValid);
@@ -739,7 +757,7 @@ namespace PixelCrushers.DialogueSystem
             if (!cachedState.hasAnyResponses && DialogueDebug.logWarnings) Debug.Log(string.Format("{0}: Bark (speaker={1}, listener={2}): '{3}' has no valid bark lines", new System.Object[] { DialogueDebug.Prefix, speaker, listener, barkConversation }), speaker);
         }
 
-        private void BarkNextCachedLine(Transform speaker, Transform listener)
+        protected void BarkNextCachedLine(Transform speaker, Transform listener)
         {
             if ((barkUI != null) && (cachedState != null) && cachedState.hasAnyResponses)
             {
@@ -768,7 +786,7 @@ namespace PixelCrushers.DialogueSystem
 
         #region Conversation Action
 
-        private void DoConversationAction(Transform actor)
+        protected virtual void DoConversationAction(Transform actor)
         {
             if (string.IsNullOrEmpty(conversation)) return;
             if (skipIfNoValidEntries && !DialogueManager.ConversationHasValidEntry(conversation, Tools.Select(conversationActor, actor), Tools.Select(conversationConversant, this.transform)))
@@ -794,18 +812,18 @@ namespace PixelCrushers.DialogueSystem
                 earliestTimeToAllowTriggerExit = Time.time + MarginToAllowTriggerExit;
                 if (stopConversationIfTooFar)
                 {
-                    monitorDistanceCoroutine = StartCoroutine(MonitorDistance(actor));
+                    monitorDistanceCoroutine = StartCoroutine(MonitorDistance(DialogueManager.currentActor));
                 }
             }
         }
 
-        private void StopMonitoringConversationDistance()
+        protected void StopMonitoringConversationDistance()
         {
             if (monitorDistanceCoroutine != null) StopCoroutine(monitorDistanceCoroutine);
             monitorDistanceCoroutine = null;
         }
 
-        private IEnumerator MonitorDistance(Transform actor)
+        protected IEnumerator MonitorDistance(Transform actor)
         {
             if (actor == null) yield break;
             Transform myTransform = transform;
@@ -825,7 +843,7 @@ namespace PixelCrushers.DialogueSystem
 
         #region Set GameObject Active Action
 
-        private void DoSetActiveActions(Transform actor)
+        protected virtual void DoSetActiveActions(Transform actor)
         {
             for (int i = 0; i < setActiveActions.Length; i++)
             {
@@ -844,7 +862,7 @@ namespace PixelCrushers.DialogueSystem
 
         #region Set Components Enabled Action
 
-        private void DoSetEnabledActions(Transform actor)
+        protected virtual void DoSetEnabledActions(Transform actor)
         {
             for (int i = 0; i < setEnabledActions.Length; i++)
             {
@@ -853,14 +871,14 @@ namespace PixelCrushers.DialogueSystem
                 {
                     Tools.SetComponentEnabled(action.target, action.state);
                 }
-            }            
+            }
         }
 
         #endregion
 
         #region Set Animator State Action
 
-        private void DoSetAnimatorStateActions(Transform actor)
+        protected virtual void DoSetAnimatorStateActions(Transform actor)
         {
             for (int i = 0; i < setAnimatorStateActions.Length; i++)
             {

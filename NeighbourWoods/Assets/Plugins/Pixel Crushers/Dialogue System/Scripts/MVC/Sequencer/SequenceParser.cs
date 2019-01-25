@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections.Generic;
@@ -59,7 +59,7 @@ namespace PixelCrushers.DialogueSystem
 
         private QueuedSequencerCommand ParseCommand(StringReader reader)
         {
-            ParseOptionalWhitespace(reader);
+            ParseOptionalWhitespace(reader, true);
             var required = false;
             var s = ParseWord(reader);
             if (string.Equals(s, SequencerKeywords.Required, System.StringComparison.OrdinalIgnoreCase) || string.Equals(s, SequencerKeywords.Require, System.StringComparison.OrdinalIgnoreCase))
@@ -105,10 +105,10 @@ namespace PixelCrushers.DialogueSystem
             return sb.ToString();
         }
 
-        private void ParseOptionalWhitespace(StringReader reader)
+        private void ParseOptionalWhitespace(StringReader reader, bool includingSemicolons = false)
         {
             int safeguard = 0;
-            while (IsNextCharWhiteSpace(reader) && safeguard < MaxSafeguard)
+            while ((IsNextCharWhiteSpace(reader) || (includingSemicolons && IsNextChar(reader, ';'))) && safeguard < MaxSafeguard)
             {
                 safeguard++;
                 ReadNextChar(reader);
@@ -255,7 +255,7 @@ namespace PixelCrushers.DialogueSystem
                 else
                 {
                     float value;
-                    if (float.TryParse(s, out value))
+                    if (float.TryParse(s, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out value))
                     {
                         atTime = value;
                     }

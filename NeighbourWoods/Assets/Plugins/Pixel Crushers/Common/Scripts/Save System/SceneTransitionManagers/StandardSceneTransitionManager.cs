@@ -1,7 +1,8 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 #if UNITY_5_3_OR_NEWER
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using System;
 using System.Collections;
@@ -31,6 +32,8 @@ namespace PixelCrushers
             public float animationDuration;
             [Tooltip("Total duration to wait for the transition.")]
             public float minTransitionDuration;
+            public UnityEvent onTransitionStart = new UnityEvent();
+            public UnityEvent onTransitionEnd = new UnityEvent();
             public void TriggerAnimation()
             {
                 if (animator == null || string.IsNullOrEmpty(trigger)) return;
@@ -49,6 +52,7 @@ namespace PixelCrushers
 
         public override IEnumerator LeaveScene()
         {
+            leaveSceneTransition.onTransitionStart.Invoke();
             var startTime = Time.realtimeSinceStartup;
             var minAnimationTime = startTime + leaveSceneTransition.animationDuration;
             var minEndTime = startTime + Mathf.Max(leaveSceneTransition.minTransitionDuration, leaveSceneTransition.animationDuration);
@@ -69,10 +73,12 @@ namespace PixelCrushers
             {
                 yield return null;
             }
+            leaveSceneTransition.onTransitionEnd.Invoke();
         }
 
         public override IEnumerator EnterScene()
         {
+            enterSceneTransition.onTransitionStart.Invoke();
             var startTime = Time.realtimeSinceStartup;
             var minAnimationTime = startTime + enterSceneTransition.animationDuration;
             var minEndTime = startTime + Mathf.Max(enterSceneTransition.minTransitionDuration, enterSceneTransition.animationDuration);
@@ -89,6 +95,7 @@ namespace PixelCrushers
             {
                 Time.timeScale = 1; //---Always reset to normal time.
             }
+            enterSceneTransition.onTransitionEnd.Invoke();
         }
 
     }

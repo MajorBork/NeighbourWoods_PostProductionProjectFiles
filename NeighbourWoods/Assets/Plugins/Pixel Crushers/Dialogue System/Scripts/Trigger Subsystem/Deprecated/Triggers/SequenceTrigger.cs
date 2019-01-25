@@ -60,17 +60,7 @@ namespace PixelCrushers.DialogueSystem
             if (enabled && (trigger == DialogueTriggerEvent.OnTriggerEnter)) TryStartSequence(other.transform, other.transform);
         }
 
-        public void OnTriggerEnter2D(Collider2D other)
-        {
-            if (enabled && (trigger == DialogueTriggerEvent.OnTriggerEnter)) TryStartSequence(other.transform, other.transform);
-        }
-
         public void OnTriggerExit(Collider other)
-        {
-            if (enabled && (trigger == DialogueTriggerEvent.OnTriggerExit)) TryStartSequence(other.transform, other.transform);
-        }
-
-        public void OnTriggerExit2D(Collider2D other)
         {
             if (enabled && (trigger == DialogueTriggerEvent.OnTriggerExit)) TryStartSequence(other.transform, other.transform);
         }
@@ -80,20 +70,34 @@ namespace PixelCrushers.DialogueSystem
             if (enabled && (trigger == DialogueTriggerEvent.OnCollisionEnter)) TryStartSequence(collision.collider.transform, collision.collider.transform);
         }
 
-        public void OnCollisionEnter2D(Collision2D collision)
-        {
-            if (enabled && (trigger == DialogueTriggerEvent.OnTriggerEnter)) TryStartSequence(collision.collider.transform, collision.collider.transform);
-        }
-
         public void OnCollisionExit(Collision collision)
         {
             if (enabled && (trigger == DialogueTriggerEvent.OnTriggerExit)) TryStartSequence(collision.collider.transform, collision.collider.transform);
+        }
+
+#if USE_PHYSICS2D || !UNITY_2018_1_OR_NEWER
+
+        public void OnTriggerEnter2D(Collider2D other)
+        {
+            if (enabled && (trigger == DialogueTriggerEvent.OnTriggerEnter)) TryStartSequence(other.transform, other.transform);
+        }
+
+        public void OnTriggerExit2D(Collider2D other)
+        {
+            if (enabled && (trigger == DialogueTriggerEvent.OnTriggerExit)) TryStartSequence(other.transform, other.transform);
+        }
+
+        public void OnCollisionEnter2D(Collision2D collision)
+        {
+            if (enabled && (trigger == DialogueTriggerEvent.OnTriggerEnter)) TryStartSequence(collision.collider.transform, collision.collider.transform);
         }
 
         public void OnCollisionExit2D(Collision2D collision)
         {
             if (enabled && (trigger == DialogueTriggerEvent.OnTriggerExit)) TryStartSequence(collision.collider.transform, collision.collider.transform);
         }
+
+#endif
 
         public void Start()
         {

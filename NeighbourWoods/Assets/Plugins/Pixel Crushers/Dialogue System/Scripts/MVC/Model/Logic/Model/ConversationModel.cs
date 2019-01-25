@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections.Generic;
@@ -62,6 +62,12 @@ namespace PixelCrushers.DialogueSystem
         public IsDialogueEntryValidDelegate IsDialogueEntryValid { get { return isDialogueEntryValid; } private set { isDialogueEntryValid = value; } }
         /// @endcond
 
+        // Public accessors for cached private variables below:
+        public bool allowLuaExceptions { get { return m_allowLuaExceptions; } set { m_allowLuaExceptions = value; } }
+        public EntrytagFormat entrytagFormat { get { return m_entrytagFormat; } set { m_entrytagFormat = value; } }
+        public EmTag emTagForOldResponses { get { return m_emTagForOldResponses; } set { m_emTagForOldResponses = value; } }
+        public EmTag emTagForInvalidResponses { get { return m_emTagForInvalidResponses; } set { m_emTagForInvalidResponses = value; } }
+        public bool includeInvalidEntries { get { return m_includeInvalidEntries; } set { m_includeInvalidEntries = value; } }
 
         private DialogueDatabase m_database = null;
         private CharacterInfo m_actorInfo = null;
@@ -74,6 +80,7 @@ namespace PixelCrushers.DialogueSystem
         private bool m_includeInvalidEntries = false;
         private string pcPortraitName = null;
         private Texture2D pcPortraitTexture = null;
+        private DialogueEntry forceLinkEntry = null;
 
         /// <summary>
         /// The current conversation ID. When this changes (in GotoState), the Lua environment
@@ -234,13 +241,44 @@ namespace PixelCrushers.DialogueSystem
                 Subtitle subtitle = new Subtitle(actorInfo, listenerInfo, formattedText, entry.currentSequence, entry.currentResponseMenuSequence, entry, entrytag);
                 List<Response> npcResponses = new List<Response>();
                 List<Response> pcResponses = new List<Response>();
-                if (includeLinks) EvaluateLinks(entry, npcResponses, pcResponses, new List<DialogueEntry>(), stopAtFirstValid);
+                if (includeLinks)
+                {
+                    if (forceLinkEntry != null)
+                    {
+                        AddForcedLink(npcResponses, pcResponses);
+                    }
+                    else
+                    {
+                        EvaluateLinks(entry, npcResponses, pcResponses, new List<DialogueEntry>(), stopAtFirstValid);
+                    }
+                }
                 return new ConversationState(subtitle, npcResponses.ToArray(), pcResponses.ToArray(), entry.isGroup);
             }
             else
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Forces the next state to link to a specific dialogue entry instead of its designed links.
+        /// </summary>
+        public void ForceNextStateToLinkToEntry(DialogueEntry entry)
+        {
+            forceLinkEntry = entry;
+        }
+
+        private void AddForcedLink(List<Response> npcResponses, List<Response> pcResponses)
+        {
+            if (m_database.GetCharacterType(forceLinkEntry.ActorID) == CharacterType.NPC)
+            {
+                npcResponses.Add(new Response(FormattedText.Parse(forceLinkEntry.subtitleText, m_database.emphasisSettings), forceLinkEntry));
+            }
+            else
+            {
+                pcResponses.Add(new Response(FormattedText.Parse(forceLinkEntry.subtitleText, m_database.emphasisSettings), forceLinkEntry));
+            }
+            forceLinkEntry = null;
         }
 
         /// <summary>
@@ -346,9 +384,10 @@ namespace PixelCrushers.DialogueSystem
                             if (destinationEntry.isGroup)
                             {
 
-                                // For groups, evaluate their links (after running the group node's Lua code):
+                                // For groups, evaluate their links (after running the group node's Lua code and OnExecute() event):
                                 if (DialogueDebug.logInfo) Debug.Log(string.Format("{0}: Add Group ({1}): ID={2}:{3} '{4}' ({5})", new System.Object[] { DialogueDebug.Prefix, GetActorName(m_database.GetActor(destinationEntry.ActorID)), link.destinationConversationID, link.destinationDialogueID, destinationEntry.Title, isValid }));
                                 Lua.Run(destinationEntry.userScript, DialogueDebug.logInfo, m_allowLuaExceptions);
+                                destinationEntry.onExecute.Invoke();
                                 for (int i = (int)ConditionPriority.High; i >= 0; i--)
                                 {
                                     int originalResponseCount = npcResponses.Count + pcResponses.Count; ;

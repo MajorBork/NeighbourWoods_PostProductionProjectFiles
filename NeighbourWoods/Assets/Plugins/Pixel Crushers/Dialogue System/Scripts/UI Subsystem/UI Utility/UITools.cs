@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections.Generic;
@@ -107,6 +107,7 @@ namespace PixelCrushers.DialogueSystem
         {
             var currentEventSystem = UnityEngine.EventSystems.EventSystem.current;
             if (currentEventSystem == null || selectable == null) return;
+            if (currentEventSystem.alreadySelecting) return;
             if (currentEventSystem.currentSelectedGameObject == null || allowStealFocus)
             {
                 currentEventSystem.SetSelectedGameObject(selectable.gameObject);
@@ -169,7 +170,7 @@ namespace PixelCrushers.DialogueSystem
         public static void EnableInteractivity(GameObject go)
         {
             var canvas = go.GetComponentInChildren<Canvas>() ?? go.GetComponentInParent<Canvas>();
-            if (canvas.renderMode != RenderMode.ScreenSpaceOverlay)
+            if (canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay)
             {
                 if (canvas.worldCamera == null) canvas.worldCamera = Camera.main;
             }

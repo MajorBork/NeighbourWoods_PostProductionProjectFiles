@@ -1,11 +1,12 @@
 ﻿#if USE_ARTICY
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Text;
 using System.IO;
 using System.Collections.Generic;
 using System.Xml.Serialization;
+using System;
 
 namespace PixelCrushers.DialogueSystem.Articy.Articy_3_1
 {
@@ -26,6 +27,10 @@ namespace PixelCrushers.DialogueSystem.Articy.Articy_3_1
         private static ExportType _currentExport = null; // Convenience variable so we don't have to pass it everywhere.
 
         private static ConverterPrefs _prefs = null; // Convenience variable.
+
+        private static int documentDepth = 0;
+
+        private static bool isInTextTableDocument = false;
 
         public static bool IsSchema(string xmlFilename)
         {
@@ -55,6 +60,7 @@ namespace PixelCrushers.DialogueSystem.Articy.Articy_3_1
             _convertSlotsAs = (prefs != null) ? prefs.ConvertSlotsAs : ConverterPrefs.ConvertSlotsModes.DisplayName;
             _currentExport = export;
             _prefs = prefs;
+            documentDepth = 0;
             ArticyData articyData = new ArticyData();
             articyData.project.createdOn = export.CreatedOn.ToString();
             articyData.project.creatorTool = export.CreatorTool;
@@ -131,6 +137,7 @@ namespace PixelCrushers.DialogueSystem.Articy.Articy_3_1
 
         private static void ConvertDocument(ArticyData articyData, DocumentType document)
         {
+            // Note: Not used. Documents appear as dialogues in XML, so use ConvertDialogue.
             if (document != null)
             {
                 articyData.dialogues.Add(document.Id, new ArticyData.Dialogue(document.Id, document.TechnicalName,
@@ -521,21 +528,52 @@ namespace PixelCrushers.DialogueSystem.Articy.Articy_3_1
 
         private static void ConvertHierarchy(ArticyData articyData, HierarchyType hierarchy)
         {
-            articyData.hierarchy.node = ConvertNode(hierarchy.Node);
+            articyData.hierarchy.node = ConvertNode(articyData, hierarchy.Node);
         }
 
-        private static ArticyData.Node ConvertNode(NodeType node)
+        private static ArticyData.Node ConvertNode(ArticyData articyData, NodeType node)
         {
             ArticyData.Node articyDataNode = new ArticyData.Node();
             if (node != null)
             {
+                // Record node type:
                 articyDataNode.id = node.IdRef;
                 articyDataNode.type = ConvertNodeType(node.Type);
+
+                // If this is a TextObject in our TextTableDocument, add it to the text table data:
+                if (isInTextTableDocument && string.Equals(node.Type, "TextObject"))
+                {
+                    var textObject = LookupByIdRef(node.IdRef) as TextObjectType;
+                    if (textObject != null) articyData.textTableFields.Add(GetDefaultLocalizedString(textObject.DisplayName));
+                }
+
+                // If a dialogue and inside a document, record that it's in a document:
+                if (articyDataNode.type == ArticyData.NodeType.Dialogue && documentDepth > 0)
+                {
+                    var dialogue = articyData.dialogues.ContainsKey(node.IdRef) ? articyData.dialogues[node.IdRef] : null;
+                    if (dialogue != null) dialogue.isDocument = true;
+                }
+
+                // Recurse through children:
                 if (node.Node != null)
                 {
+                    if (node.Type == "Document")
+                    {
+                        documentDepth++;
+                        if (!string.IsNullOrEmpty(_prefs.TextTableDocument))
+                        {
+                            var document = LookupByIdRef(node.IdRef) as DocumentType;
+                            if (document != null && string.Equals(GetDefaultLocalizedString(document.DisplayName), _prefs.TextTableDocument)) isInTextTableDocument = true;
+                        }
+                    }
                     foreach (NodeType childNode in node.Node)
                     {
-                        articyDataNode.nodes.Add(ConvertNode(childNode));
+                        articyDataNode.nodes.Add(ConvertNode(articyData, childNode));
+                    }
+                    if (node.Type == "Document")
+                    {
+                        documentDepth--;
+                        isInTextTableDocument = false;
                     }
                 }
             }
@@ -580,6 +618,24 @@ namespace PixelCrushers.DialogueSystem.Articy.Articy_3_1
             {
                 return ArticyData.NodeType.Other;
             }
+        }
+
+        // IMPORTANT NOTE: For efficiency, only looks up Documents and TextObjects.
+        private static object LookupByIdRef(string idRef)
+        {
+            for (int i = 0; i < _currentExport.Content.Items.Length; i++)
+            {
+                var item = _currentExport.Content.Items[i];
+                if (item is DocumentType)
+                {
+                    if (string.Equals((item as DocumentType).Id, idRef)) return item;
+                }
+                else if (item is TextObjectType)
+                {
+                    if (string.Equals((item as TextObjectType).Id, idRef)) return item;
+                }
+            }
+            return null;
         }
 
     }

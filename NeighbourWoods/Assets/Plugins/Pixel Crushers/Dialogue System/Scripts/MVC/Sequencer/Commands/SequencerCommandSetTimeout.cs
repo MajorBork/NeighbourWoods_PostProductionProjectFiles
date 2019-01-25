@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -17,7 +17,7 @@ namespace PixelCrushers.DialogueSystem.SequencerCommands
         public void Start()
         {
             float duration = GetParameterAsFloat(0);
-            if (DialogueDebug.logInfo) Debug.Log(string.Format("{0}: Sequencer: SetTimeout({1})", DialogueDebug.Prefix, duration));
+            if (DialogueDebug.logInfo) Debug.Log(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}: Sequencer: SetTimeout({1})", DialogueDebug.Prefix, duration));
             if (DialogueManager.displaySettings != null && DialogueManager.displaySettings.inputSettings != null)
             {
                 DialogueManager.displaySettings.inputSettings.responseTimeout = duration;

@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections;
@@ -233,18 +233,20 @@ namespace PixelCrushers.DialogueSystem
             if (removeTrigger == DialogueTriggerEvent.OnTriggerEnter) TryRemoveDatabases(other.transform, onePerFrame);
         }
 
-        public void OnTriggerEnter2D(Collider2D other)
-        {
-            if (!enabled) return;
-            if (addTrigger == DialogueTriggerEvent.OnTriggerEnter) TryAddDatabases(other.transform, onePerFrame);
-            if (removeTrigger == DialogueTriggerEvent.OnTriggerEnter) TryRemoveDatabases(other.transform, onePerFrame);
-        }
-
         public void OnTriggerExit(Collider other)
         {
             if (!enabled) return;
             if (addTrigger == DialogueTriggerEvent.OnTriggerExit) TryAddDatabases(other.transform, onePerFrame);
             if (removeTrigger == DialogueTriggerEvent.OnTriggerExit) TryRemoveDatabases(other.transform, onePerFrame);
+        }
+
+#if USE_PHYSICS2D || !UNITY_2018_1_OR_NEWER
+
+        public void OnTriggerEnter2D(Collider2D other)
+        {
+            if (!enabled) return;
+            if (addTrigger == DialogueTriggerEvent.OnTriggerEnter) TryAddDatabases(other.transform, onePerFrame);
+            if (removeTrigger == DialogueTriggerEvent.OnTriggerEnter) TryRemoveDatabases(other.transform, onePerFrame);
         }
 
         public void OnTriggerExit2D(Collider2D other)
@@ -253,6 +255,8 @@ namespace PixelCrushers.DialogueSystem
             if (addTrigger == DialogueTriggerEvent.OnTriggerExit) TryAddDatabases(other.transform, onePerFrame);
             if (removeTrigger == DialogueTriggerEvent.OnTriggerExit) TryRemoveDatabases(other.transform, onePerFrame);
         }
+
+#endif
 
     }
 

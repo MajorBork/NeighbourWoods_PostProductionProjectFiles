@@ -5,6 +5,11 @@ using UnityEngine.SceneManagement;
 using Manager.Item;
 using DG.Tweening;
 using UnityEngine.UI;
+using Manager.Audio;
+using Manager.Player;
+using Manager.Level;
+using Manager.UI;
+using Manager.Environment;
 namespace Manager
 {
     #region GameState Enum
@@ -20,6 +25,14 @@ namespace Manager
     #region GameManager 
     public class GameManager : Singleton<GameManager>
     {
+        [Tooltip("The variable that references the UIManager script on the canvas")]
+        public UIManager uiManager;
+        [Tooltip("The variable that references the AudioManager Script on the GameManager object")]
+        public AudioManager audioManager;
+        [Tooltip("The variable that references the LevelManager Script on the GameManager object")]
+        public LevelManager levelManager;
+        [Tooltip("The variable that references the LevelManager Script on the GameManager object")]
+        public EnvironmentManager environmentManager;
         public int foodLevel;
         //public ItemType itemType;
         public GameState gameState;

@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections;
@@ -235,7 +235,7 @@ namespace PixelCrushers.DialogueSystem
                     var text = subtitle.formattedText.text;
                     int numCharacters = string.IsNullOrEmpty(text) ? 0 : Tools.StripRichTextCodes(text).Length;
                     var endDuration = Mathf.Max(DialogueManager.displaySettings.GetMinSubtitleSeconds(), numCharacters / Mathf.Max(1, DialogueManager.displaySettings.GetSubtitleCharsPerSecond()));
-                    sequence = sequence.Replace(SequencerKeywords.End, endDuration.ToString());
+                    sequence = sequence.Replace(SequencerKeywords.End, endDuration.ToString(System.Globalization.CultureInfo.InvariantCulture));
                 }
                 return DialogueManager.PlaySequence(sequence, speaker, listener, false, false, subtitle.entrytag);
             }
@@ -384,7 +384,8 @@ namespace PixelCrushers.DialogueSystem
             var dialogueManagerTransform = DialogueManager.instance.transform;
             if (dialogueManagerTransform != speaker && dialogueManagerTransform != listener)
             {
-                DialogueManager.instance.BroadcastMessage(message, speaker, SendMessageOptions.DontRequireReceiver);
+                var actor = (speaker != null) ? speaker : ((listener != null) ? listener : dialogueManagerTransform);
+                DialogueManager.instance.BroadcastMessage(message, actor, SendMessageOptions.DontRequireReceiver);
             }
         }
 

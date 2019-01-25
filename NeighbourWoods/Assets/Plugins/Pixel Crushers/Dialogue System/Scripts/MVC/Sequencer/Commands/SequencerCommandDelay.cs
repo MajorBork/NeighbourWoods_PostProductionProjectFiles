@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -18,7 +18,7 @@ namespace PixelCrushers.DialogueSystem.SequencerCommands
         {
             float seconds = GetParameterAsFloat(0);
             stopTime = DialogueTime.time + seconds;
-            if (DialogueDebug.logInfo) Debug.Log(string.Format("{0}: Sequencer: Delay({1})", new System.Object[] { DialogueDebug.Prefix, seconds }));
+            if (DialogueDebug.logInfo) Debug.Log(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}: Sequencer: Delay({1})", new System.Object[] { DialogueDebug.Prefix, seconds }));
         }
 
         public void Update()

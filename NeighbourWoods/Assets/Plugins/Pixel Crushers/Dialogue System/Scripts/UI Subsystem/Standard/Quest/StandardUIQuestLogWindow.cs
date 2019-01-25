@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEngine.Events;
@@ -37,6 +37,8 @@ namespace PixelCrushers.DialogueSystem
         public bool showNoQuestsText = true;
         [Tooltip("Show details when quest button is selected (highlighted/hovered), not when clicked.")]
         public bool showDetailsOnSelect = false;
+        [Tooltip("Keep all groups expanded.")]
+        public bool keepGroupsExpanded = false;
 
         [Header("Details Panel")]
 
@@ -56,6 +58,9 @@ namespace PixelCrushers.DialogueSystem
         [Header("Events")]
         public UnityEvent onOpen = new UnityEvent();
         public UnityEvent onClose = new UnityEvent();
+
+        [Tooltip("Add an EventSystem if one isn't in the scene.")]
+        public bool addEventSystemIfNeeded = true;
 
         #endregion
 
@@ -88,7 +93,7 @@ namespace PixelCrushers.DialogueSystem
         {
             m_isAwake = true;
             base.Awake();
-            UITools.RequireEventSystem();
+            if (addEventSystemIfNeeded) UITools.RequireEventSystem();
             InitializeTemplates();
         }
 
@@ -154,7 +159,7 @@ namespace PixelCrushers.DialogueSystem
         /// </summary>
         public virtual bool IsGroupExpanded(string groupName)
         {
-            return expandedGroupNames.Contains(groupName);
+            return keepGroupsExpanded || expandedGroupNames.Contains(groupName);
         }
 
         /// <summary>
@@ -194,13 +199,15 @@ namespace PixelCrushers.DialogueSystem
             OnQuestListUpdated();
         }
 
+        public string foldoutToSelect = null;
+        public string questTitleToSelect = null;
+
         public override void OnQuestListUpdated()
         {
             if (!m_isAwake) return;
-
+            UnityEngine.UI.Selectable elementToSelect = null;
             showingActiveQuestsHeading.SetActive(isShowingActiveQuests);
             showingCompletedQuestHeading.SetActive(!isShowingActiveQuests);
-
             selectionPanelContentManager.Clear();
             var questTitleTemplate = isShowingActiveQuests ? activeQuestHeadingTemplate : completedQuestHeadingTemplate;
 
@@ -233,7 +240,15 @@ namespace PixelCrushers.DialogueSystem
                 groupFoldout.Assign(groupName, IsGroupExpanded(groupName));
                 var targetGroupName = groupName;
                 var targetGroupFoldout = groupFoldout;
-                groupFoldout.foldoutButton.onClick.AddListener(() => { OnClickGroup(targetGroupName, targetGroupFoldout); });
+                if (!keepGroupsExpanded)
+                {
+                    groupFoldout.foldoutButton.onClick.AddListener(() => { OnClickGroup(targetGroupName, targetGroupFoldout); });
+                }
+                if (string.Equals(foldoutToSelect, groupName))
+                {
+                    elementToSelect = groupFoldout.foldoutButton;
+                    foldoutToSelect = null;
+                }
                 foreach (var quest in quests)
                 {
                     if (string.Equals(quest.Group, groupName))
@@ -244,6 +259,11 @@ namespace PixelCrushers.DialogueSystem
                         var target = quest.Title;
                         questTitle.button.onClick.AddListener(() => { OnClickQuest(target); });
                         if (showDetailsOnSelect) AddShowDetailsOnSelect(questTitle.button, target);
+                        if (string.Equals(quest.Title, questTitleToSelect))
+                        {
+                            elementToSelect = questTitle.button;
+                            questTitleToSelect = null;
+                        }
                     }
                 }
             }
@@ -258,6 +278,11 @@ namespace PixelCrushers.DialogueSystem
                 var target = quest.Title;
                 questTitle.button.onClick.AddListener(() => { OnClickQuest(target); });
                 if (showDetailsOnSelect) AddShowDetailsOnSelect(questTitle.button, target);
+                if (string.Equals(quest.Title, questTitleToSelect))
+                {
+                    elementToSelect = questTitle.button;
+                    questTitleToSelect = null;
+                }
             }
 
             // If no quests, add no quests text:
@@ -271,6 +296,20 @@ namespace PixelCrushers.DialogueSystem
             SetStateToggleButtons();
             mainPanel.RefreshSelectablesList();
             if (mainPanel != null) UnityEngine.UI.LayoutRebuilder.MarkLayoutForRebuild(mainPanel.GetComponent<RectTransform>());
+            if (elementToSelect != null)
+            {
+                StartCoroutine(SelectElement(elementToSelect));
+            }
+            else if (UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject == null && mainPanel != null && mainPanel.firstSelected != null && InputDeviceManager.autoFocus)
+            {
+                UITools.Select(mainPanel.firstSelected.GetComponent<UnityEngine.UI.Selectable>());
+            }
+        }
+
+        protected IEnumerator SelectElement(UnityEngine.UI.Selectable elementToSelect)
+        {
+            yield return null;
+            UITools.Select(elementToSelect);
         }
 
         protected virtual void AddShowDetailsOnSelect(UnityEngine.UI.Button button, string target)
@@ -280,13 +319,13 @@ namespace PixelCrushers.DialogueSystem
             // On joystick navigation:
             var entry = new UnityEngine.EventSystems.EventTrigger.Entry();
             entry.eventID = UnityEngine.EventSystems.EventTriggerType.Select;
-            entry.callback.AddListener((eventData) => { OnClickQuest(target); });
+            entry.callback.AddListener((eventData) => { ShowDetailsOnSelect(target); });
             eventTrigger.triggers.Add(entry);
 
             // On cursor hover:
             entry = new UnityEngine.EventSystems.EventTrigger.Entry();
             entry.eventID = UnityEngine.EventSystems.EventTriggerType.PointerEnter;
-            entry.callback.AddListener((eventData) => { OnClickQuest(target); });
+            entry.callback.AddListener((eventData) => { ShowDetailsOnSelect(target); });
             eventTrigger.triggers.Add(entry);
         }
 
@@ -296,6 +335,11 @@ namespace PixelCrushers.DialogueSystem
             groupFoldout.ToggleInterior();
         }
 
+        protected virtual void ShowDetailsOnSelect(string questTitle)
+        {
+            if (!string.Equals(selectedQuest, questTitle)) SelectQuest(questTitle);
+        }
+
         protected virtual void OnClickQuest(string questTitle)
         {
             SelectQuest(questTitle);
@@ -303,6 +347,7 @@ namespace PixelCrushers.DialogueSystem
 
         public virtual void SelectQuest(string questTitle)
         {
+            questTitleToSelect = questTitle;
             ClickQuest(questTitle);
         }
 

@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -59,6 +59,16 @@ namespace PixelCrushers
                 m_key = value;
                 m_runtimeKey = value;
             }
+        }
+
+        /// <summary>
+        /// Accesses the internal key value. Normally leave this untouched and 
+        /// access the key property instead.
+        /// </summary>
+        public string _internalKeyValue
+        {
+            get { return m_key; }
+            set { m_key = value; }
         }
 
         /// <summary>

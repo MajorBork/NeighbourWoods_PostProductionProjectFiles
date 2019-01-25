@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEditor;
@@ -40,6 +40,7 @@ namespace PixelCrushers.DialogueSystem
             public BooleanType booleanValue = BooleanType.True;
             public float floatValue = 0;
             public float floatValue2 = 0;
+            public string[] conditionsQuestEntryNames = new string[0];
         }
 
         public bool IsOpen { get { return isOpen; } }
@@ -47,7 +48,6 @@ namespace PixelCrushers.DialogueSystem
         private bool isOpen = false;
         private List<ConditionItem> conditionItems = new List<ConditionItem>();
         private LogicalOperatorType conditionsLogicalOperator = LogicalOperatorType.All;
-        private string[] conditionsQuestEntryNames = new string[0];
         private string savedLuaCode = string.Empty;
         private bool append = true;
 
@@ -162,7 +162,7 @@ namespace PixelCrushers.DialogueSystem
             if (newConditionType != item.conditionType)
             {
                 item.conditionType = newConditionType;
-                conditionsQuestEntryNames = new string[0];
+                item.conditionsQuestEntryNames = new string[0];
             }
 
             if (item.conditionType == ConditionWizardResourceType.Quest)
@@ -182,13 +182,13 @@ namespace PixelCrushers.DialogueSystem
                 if (newQuestNamesIndex != item.questNamesIndex)
                 {
                     item.questNamesIndex = newQuestNamesIndex;
-                    conditionsQuestEntryNames = new string[0];
+                    item.conditionsQuestEntryNames = new string[0];
                 }
-                if ((conditionsQuestEntryNames.Length == 0) && (item.questNamesIndex < complexQuestNames.Length))
+                if ((item.conditionsQuestEntryNames.Length == 0) && (item.questNamesIndex < complexQuestNames.Length))
                 {
-                    conditionsQuestEntryNames = GetQuestEntryNames(complexQuestNames[item.questNamesIndex]);
+                    item.conditionsQuestEntryNames = GetQuestEntryNames(complexQuestNames[item.questNamesIndex]);
                 }
-                item.questEntryIndex = EditorGUILayout.Popup(item.questEntryIndex, conditionsQuestEntryNames);
+                item.questEntryIndex = EditorGUILayout.Popup(item.questEntryIndex, item.conditionsQuestEntryNames);
                 item.equalityType = (EqualityType)EditorGUILayout.EnumPopup(item.equalityType, GUILayout.Width(60));
                 item.questState = QuestStateDrawer.LayoutQuestStatePopup(item.questState, 96);
 
@@ -649,7 +649,7 @@ namespace PixelCrushers.DialogueSystem
             if (newConditionType != item.conditionType)
             {
                 item.conditionType = newConditionType;
-                conditionsQuestEntryNames = new string[0];
+                item.conditionsQuestEntryNames = new string[0];
             }
 
             if (item.conditionType == ConditionWizardResourceType.Quest)
@@ -678,15 +678,15 @@ namespace PixelCrushers.DialogueSystem
                 if (newQuestNamesIndex != item.questNamesIndex)
                 {
                     item.questNamesIndex = newQuestNamesIndex;
-                    conditionsQuestEntryNames = new string[0];
+                    item.conditionsQuestEntryNames = new string[0];
                 }
-                if ((conditionsQuestEntryNames.Length == 0) && (item.questNamesIndex < complexQuestNames.Length))
+                if ((item.conditionsQuestEntryNames.Length == 0) && (item.questNamesIndex < complexQuestNames.Length))
                 {
-                    conditionsQuestEntryNames = GetQuestEntryNames(complexQuestNames[item.questNamesIndex]);
+                    item.conditionsQuestEntryNames = GetQuestEntryNames(complexQuestNames[item.questNamesIndex]);
                 }
                 x += rect.width + 2;
                 rect = new Rect(x, y, freeWidth / 2, EditorGUIUtility.singleLineHeight);
-                item.questEntryIndex = EditorGUI.Popup(rect, item.questEntryIndex, conditionsQuestEntryNames);
+                item.questEntryIndex = EditorGUI.Popup(rect, item.questEntryIndex, item.conditionsQuestEntryNames);
                 x += rect.width + 2;
                 rect = new Rect(x, y, equalityWidth, EditorGUIUtility.singleLineHeight);
                 item.equalityType = (EqualityType)EditorGUI.EnumPopup(rect, item.equalityType);

@@ -4,7 +4,8 @@
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
@@ -1561,9 +1562,7 @@ MonoBehaviour:
         type: 0
         typeString: CustomFieldType_Text
       - title: Sequence
-        value: 'SendMessage(UpdateCharacterTalking,"Shobe",GameManager);
-
-          Delay({{end}})'
+        value: 
         type: 0
         typeString: CustomFieldType_Text
       conversationID: 7
@@ -1602,7 +1601,19 @@ MonoBehaviour:
       userScript: SetQuestState("TutorialQuest", "active")
       onExecute:
         m_PersistentCalls:
-          m_Calls: []
+          m_Calls:
+          - m_Target: {fileID: 6561574971705094865, guid: c43f4395c6d39da418dc985566300a8c,
+              type: 3}
+            m_MethodName: OnConversationPoint
+            m_Mode: 1
+            m_Arguments:
+              m_ObjectArgument: {fileID: 0}
+              m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+              m_IntArgument: 0
+              m_FloatArgument: 0
+              m_StringArgument: 
+              m_BoolArgument: 0
+            m_CallState: 2
         m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine.CoreModule, Version=0.0.0.0,
           Culture=neutral, PublicKeyToken=null
       canvasRect:
@@ -2466,9 +2477,7 @@ MonoBehaviour:
         type: 0
         typeString: 
       - title: Sequence
-        value: 'SendMessage(UpdateCharacterTalking,"Shobe",GameManager);
-
-          Delay({{end}})'
+        value: 
         type: 0
         typeString: 
       conversationID: 7
@@ -3616,8 +3625,8 @@ MonoBehaviour:
         y: 653.6936
         width: 160
         height: 30
-    canvasScrollPosition: {x: 160.00006, y: 142.8572}
-    canvasZoom: 0.6999997
+    canvasScrollPosition: {x: 0, y: 55.134155}
+    canvasZoom: 0.4899998
   - id: 10
     fields:
     - title: Title
@@ -3783,7 +3792,7 @@ MonoBehaviour:
         type: 0
         typeString: 
       - title: Sequence
-        value: SendMessage(UpdateCharacterTalking,"Owner",GameManager);
+        value: 
         type: 0
         typeString: 
       conversationID: 10
@@ -4442,9 +4451,7 @@ MonoBehaviour:
         type: 0
         typeString: 
       - title: Sequence
-        value: 'SendMessage(UpdateCharacterTalking,"Owner",GameManager);
-
-          SendMessage(UpdateFood,,GameManager);
+        value: 'SendMessage(UpdateFood,,GameManager);
 
           SendMessage(GetRidOfItem,,GameManager);
 
@@ -5607,7 +5614,7 @@ MonoBehaviour:
         y: 483.97952
         width: 160
         height: 30
-    canvasScrollPosition: {x: 14.893677, y: 363.71924}
+    canvasScrollPosition: {x: 0, y: 0}
     canvasZoom: 0.9399999
   - id: 12
     fields:
@@ -5767,9 +5774,7 @@ MonoBehaviour:
         type: 0
         typeString: 
       - title: Sequence
-        value: 'SendMessage(UpdateCharacterTalking,"Miskha",GameManager);
-
-          Delay({{end}})'
+        value: 
         type: 0
         typeString: 
       conversationID: 12
@@ -8589,7 +8594,7 @@ MonoBehaviour:
         y: 566.0571
         width: 160
         height: 30
-    canvasScrollPosition: {x: 0, y: 0}
+    canvasScrollPosition: {x: 0, y: 128.12497}
     canvasZoom: 0.6400003
   - id: 13
     fields:
@@ -16059,8 +16064,8 @@ MonoBehaviour:
         y: 730.8882
         width: 160
         height: 30
-    canvasScrollPosition: {x: 0, y: 62.195206}
-    canvasZoom: 0.8199989
+    canvasScrollPosition: {x: 32.681244, y: 0}
+    canvasZoom: 0.8199986
   - id: 22
     fields:
     - title: Title
@@ -19548,8 +19553,8 @@ MonoBehaviour:
         y: 931.567
         width: 160
         height: 30
-    canvasScrollPosition: {x: 0, y: 631.52075}
-    canvasZoom: 0.41000083
+    canvasScrollPosition: {x: 0, y: 70}
+    canvasZoom: 0.50000083
   - id: 24
     fields:
     - title: Title
@@ -26460,7 +26465,7 @@ MonoBehaviour:
         type: 0
         typeString: 
       - title: Sequence
-        value: Delay({{end}})
+        value: 
         type: 0
         typeString: 
       conversationID: 28
@@ -28922,7 +28927,7 @@ MonoBehaviour:
         y: 111.81816
         width: 160
         height: 30
-    canvasScrollPosition: {x: 0, y: 0}
+    canvasScrollPosition: {x: 0, y: 196.20271}
     canvasZoom: 0.78999937
   - id: 29
     fields:
@@ -39538,7 +39543,7 @@ MonoBehaviour:
         y: 830
         width: 160
         height: 30
-    canvasScrollPosition: {x: 0, y: 697.3686}
+    canvasScrollPosition: {x: 1.3157959, y: 0}
     canvasZoom: 0.76
   - id: 37
     fields:

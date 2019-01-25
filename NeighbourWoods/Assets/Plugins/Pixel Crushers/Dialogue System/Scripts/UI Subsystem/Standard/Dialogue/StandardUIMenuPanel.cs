@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEngine.Events;
@@ -46,7 +46,7 @@ namespace PixelCrushers.DialogueSystem
         [Tooltip("(Optional) Component that enables or disables scrollbar as necessary for content.")]
         public UIScrollbarEnabler scrollbarEnabler;
 
-        [Tooltip("Reset the scroll bar to this value when preparing response menu.")]
+        [Tooltip("Reset the scroll bar to this value when preparing response menu. To skip resetting the scrollbar, specify a negative value.")]
         public float buttonTemplateScrollbarResetValue = 1;
 
         [Tooltip("Automatically set up explicit joystick/keyboard navigation for instantiated template buttons instead of using Automatic navigation.")]
@@ -240,10 +240,17 @@ namespace PixelCrushers.DialogueSystem
                     // Reset scrollbar to top:
                     if (buttonTemplateScrollbar != null)
                     {
-                        buttonTemplateScrollbar.value = buttonTemplateScrollbarResetValue;
-                        if (scrollbarEnabler != null)
+                        if (buttonTemplateScrollbarResetValue >= 0)
                         {
-                            scrollbarEnabler.CheckScrollbarWithResetValue(buttonTemplateScrollbarResetValue);
+                            buttonTemplateScrollbar.value = buttonTemplateScrollbarResetValue;
+                            if (scrollbarEnabler != null)
+                            {
+                                scrollbarEnabler.CheckScrollbarWithResetValue(buttonTemplateScrollbarResetValue);
+                            }
+                        }
+                        else if (scrollbarEnabler != null)
+                        {
+                            scrollbarEnabler.CheckScrollbar();
                         }
                     }
 
@@ -337,7 +344,7 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private int GetNextAvailableResponseButtonPosition(int start, int direction)
+        protected int GetNextAvailableResponseButtonPosition(int start, int direction)
         {
             if (buttons != null)
             {
@@ -357,7 +364,7 @@ namespace PixelCrushers.DialogueSystem
             return 5;
         }
 
-        public void SetupTemplateButtonNavigation()
+        public virtual void SetupTemplateButtonNavigation()
         {
             // Assumes buttons are active (since uses GetComponent), so call after activating panel.
             if (instantiatedButtons == null || instantiatedButtons.Count == 0) return;
@@ -405,6 +412,25 @@ namespace PixelCrushers.DialogueSystem
 
             instantiatedButtons.Clear();
             NotifyContentChanged();
+        }
+
+        /// <summary>
+        /// Makes the panel's buttons non-clickable.
+        /// Typically called by the dialogue UI as soon as a button has been
+        /// clicked to make sure the player can't click another one while the
+        /// menu is playing its hide animation.
+        /// </summary>
+        public void MakeButtonsNonclickable()
+        {
+            for (int i = 0; i < instantiatedButtons.Count; i++)
+            {
+                var responseButton = (instantiatedButtons[i] != null) ? instantiatedButtons[i].GetComponent<StandardUIResponseButton>() : null;
+                if (responseButton != null) responseButton.isClickable = false;
+            }
+            for (int i = 0; i < buttons.Length; i++)
+            {
+                if (buttons[i] != null) buttons[i].isClickable = false;
+            }
         }
 
         protected void NotifyContentChanged()

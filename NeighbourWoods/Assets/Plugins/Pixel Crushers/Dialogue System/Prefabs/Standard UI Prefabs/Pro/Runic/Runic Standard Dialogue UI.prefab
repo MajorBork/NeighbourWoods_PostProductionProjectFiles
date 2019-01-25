@@ -934,6 +934,7 @@ MonoBehaviour:
   firstSelected: {fileID: 128822}
   focusCheckFrequency: 0.2
   refreshSelectablesFrequency: 0
+  selectPreviousOnDisable: 1
   showAnimationTrigger: Show
   hideAnimationTrigger: Hide
   startState: 2
@@ -1112,6 +1113,7 @@ MonoBehaviour:
   firstSelected: {fileID: 0}
   focusCheckFrequency: 0.2
   refreshSelectablesFrequency: 0
+  selectPreviousOnDisable: 1
   showAnimationTrigger: 
   hideAnimationTrigger: 
   startState: 0
@@ -1206,6 +1208,7 @@ MonoBehaviour:
   removeDuplicateTypewriterEffects: 1
   playOnEnable: 0
   waitOneFrameBeforeStarting: 0
+  stopOnConversationEnd: 0
   autoScrollSettings:
     autoScrollEnabled: 0
     scrollRect: {fileID: 0}
@@ -1271,6 +1274,7 @@ MonoBehaviour:
   firstSelected: {fileID: 0}
   focusCheckFrequency: 0.2
   refreshSelectablesFrequency: 0
+  selectPreviousOnDisable: 1
   showAnimationTrigger: 
   hideAnimationTrigger: 
   startState: 0
@@ -1497,6 +1501,7 @@ MonoBehaviour:
   firstSelected: {fileID: 159398}
   focusCheckFrequency: 0.2
   refreshSelectablesFrequency: 0
+  selectPreviousOnDisable: 1
   showAnimationTrigger: 
   hideAnimationTrigger: 
   startState: 0
@@ -1529,6 +1534,7 @@ MonoBehaviour:
   focusAnimationTrigger: 
   unfocusAnimationTrigger: 
   useAnimatedPortraits: 1
+  onlyShowNPCPortraits: 0
   onFocus:
     m_PersistentCalls:
       m_Calls: []
@@ -1658,7 +1664,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   dialogueUI: {fileID: 11482104}
-  typewriterEffect: {fileID: 0}
+  typewriterEffect: {fileID: 11431652}
   hideContinueButtonOnContinue: 0
 --- !u!114 &11451396
 MonoBehaviour:
@@ -2190,7 +2196,9 @@ MonoBehaviour:
     alertText:
       m_uiText: {fileID: 11414052}
     queueAlerts: 1
+    dontQueueDuplicates: 0
     waitForHideAnimation: 1
+    allowForceImmediate: 0
   conversationUIElements:
     mainPanel: {fileID: 11427878}
     subtitlePanels:
@@ -2205,6 +2213,7 @@ MonoBehaviour:
     QTEIndicators:
     - {fileID: 128998}
     - {fileID: 128832}
+  addEventSystemIfNeeded: 1
 --- !u!114 &11484202
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -2424,6 +2433,7 @@ MonoBehaviour:
   firstSelected: {fileID: 131434}
   focusCheckFrequency: 0.2
   refreshSelectablesFrequency: 1
+  selectPreviousOnDisable: 1
   showAnimationTrigger: Show
   hideAnimationTrigger: Hide
   startState: 2

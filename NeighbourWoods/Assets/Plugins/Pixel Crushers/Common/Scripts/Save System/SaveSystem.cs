@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections;
@@ -148,6 +148,15 @@ namespace PixelCrushers
                 }
                 return m_sceneTransitionManager;
             }
+        }
+
+        /// <summary>
+        /// The saved game data recorded by the last call to SaveToSlot,
+        /// LoadScene, or RecordSavedGameData.
+        /// </summary>
+        public static SavedGameData currentSavedGameData
+        {
+            get { return m_savedGameData; }
         }
 
         /// <summary>

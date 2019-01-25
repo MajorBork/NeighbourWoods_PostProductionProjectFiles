@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEngine.Events;
@@ -175,7 +175,7 @@ namespace PixelCrushers.DialogueSystem
         /// </summary>
         public virtual void HideSubtitle(Subtitle subtitle)
         {
-            Unfocus();
+            if (panelState != PanelState.Closed) Unfocus();
             Close();
         }
 
@@ -324,7 +324,7 @@ namespace PixelCrushers.DialogueSystem
             TypewriterUtility.StartTyping(subtitleText, subtitleText.text, previousText.Length);
         }
 
-        protected void SetFormattedText(UITextField textField, string previousText, FormattedText formattedText)
+        protected virtual void SetFormattedText(UITextField textField, string previousText, FormattedText formattedText)
         {
             textField.text = previousText + UITools.GetUIFormattedText(formattedText);
             UITools.SendTextChangeMessage(textField);
@@ -333,10 +333,10 @@ namespace PixelCrushers.DialogueSystem
                 originalColor = textField.color;
                 haveSavedOriginalColor = true;
             }
-            textField.color = (formattedText.emphases.Length > 0) ? formattedText.emphases[0].color : originalColor;
+            textField.color = (formattedText.emphases != null && formattedText.emphases.Length > 0) ? formattedText.emphases[0].color : originalColor;
         }
 
-        public void SetActorPortraitTexture(string actorName, Texture2D portraitTexture)
+        public virtual void SetActorPortraitTexture(string actorName, Texture2D portraitTexture)
         {
             if (portraitImage == null) return;
             portraitImage.sprite = UITools.CreateSprite(AbstractDialogueUI.GetValidPortraitTexture(actorName, portraitTexture));
@@ -362,7 +362,7 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
-        private void CheckDialogueActorAnimator(DialogueActor dialogueActor)
+        protected void CheckDialogueActorAnimator(DialogueActor dialogueActor)
         {
             if (dialogueActor != null && useAnimatedPortraits && animator != null &&
                 dialogueActor.standardDialogueUISettings.portraitAnimatorController != null)

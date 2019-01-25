@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEditor;
@@ -117,6 +117,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         private void DrawItemListElement(Rect rect, int index, bool isActive, bool isFocused)
         {
             if (!(0 <= index && index < database.items.Count)) return;
+            var nameControl = "ItemName" + index;
+            var descriptionControl = "ItemDescription" + index;
             var item = database.items[index];
             var itemName = item.Name;
             var description = item.Description;
@@ -126,9 +128,11 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
                 var fieldWidth = (rect.width - ItemReorderableListTypeWidth) / 4;
                 EditorGUI.LabelField(new Rect(rect.x, rect.y + 2, ItemReorderableListTypeWidth, EditorGUIUtility.singleLineHeight), item.IsItem ? "Item" : "Quest");
                 EditorGUI.BeginChangeCheck();
+                GUI.SetNextControlName(nameControl);
                 itemName = EditorGUI.TextField(new Rect(rect.x + ItemReorderableListTypeWidth, rect.y, fieldWidth, EditorGUIUtility.singleLineHeight), GUIContent.none, item.Name);
                 if (EditorGUI.EndChangeCheck()) item.Name = itemName;
                 EditorGUI.BeginChangeCheck();
+                GUI.SetNextControlName(descriptionControl);
                 description = EditorGUI.TextField(new Rect(rect.x + ItemReorderableListTypeWidth + fieldWidth + 2, rect.y + 2, 3 * fieldWidth - 2, EditorGUIUtility.singleLineHeight), GUIContent.none, description);
                 if (EditorGUI.EndChangeCheck()) item.Description = description;
             }
@@ -136,13 +140,20 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             {
                 var fieldWidth = rect.width / 4;
                 EditorGUI.BeginChangeCheck();
+                GUI.SetNextControlName(nameControl);
                 itemName = EditorGUI.TextField(new Rect(rect.x, rect.y, fieldWidth, EditorGUIUtility.singleLineHeight), GUIContent.none, item.Name);
                 if (EditorGUI.EndChangeCheck()) item.Name = itemName;
                 EditorGUI.BeginChangeCheck();
+                GUI.SetNextControlName(descriptionControl);
                 description = EditorGUI.TextField(new Rect(rect.x + fieldWidth + 2, rect.y, 3 * fieldWidth - 2, EditorGUIUtility.singleLineHeight), GUIContent.none, description);
                 if (EditorGUI.EndChangeCheck()) item.Description = description;
             }
             EditorGUI.EndDisabledGroup();
+            var focusedControl = GUI.GetNameOfFocusedControl();
+            if (string.Equals(nameControl, focusedControl) || string.Equals(descriptionControl, focusedControl))
+            {
+                inspectorSelection = item;
+            }
         }
 
         private void DrawItemListElementBackground(Rect rect, int index, bool isActive, bool isFocused)

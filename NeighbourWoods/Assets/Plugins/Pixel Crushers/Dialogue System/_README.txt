@@ -1,7 +1,7 @@
 /*
 ------------------------------
   Dialogue System for Unity  
-        Version 2.0.4
+        Version 2.1.0
         
   Copyright © Pixel Crushers
 ------------------------------
@@ -31,8 +31,8 @@ o Play the scene in the Demo folder.
 Documentation:
 --------------
 o Video tutorials & online manual: Tools > Pixel Crushers > Dialogue System > Help.
-o Online documentation: http://www.pixelcrushers.com/dialogue_system/manual2x/html/
-o Download a copy: http://www.pixelcrushers.com/dialogue_system/manual2x/Documentation.zip
+o Online documentation: https://www.pixelcrushers.com/dialogue_system/manual2x/html/
+o Download a copy: https://www.pixelcrushers.com/dialogue_system/manual2x/Documentation.zip
   If you download a copy for offline use, do not unzip it into your Assets folder! It 
   contains Doxygen-generated JavaScript files; if these are in the Assets folder, Unity 
   will try to compile them and fail. Unzip it outside of your Assets folder.

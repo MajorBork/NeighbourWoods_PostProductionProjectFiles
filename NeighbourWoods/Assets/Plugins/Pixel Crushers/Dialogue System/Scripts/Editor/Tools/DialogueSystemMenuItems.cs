@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEditor;
@@ -68,7 +68,7 @@ namespace PixelCrushers.DialogueSystem
         [MenuItem("Tools/Pixel Crushers/Dialogue System/Help/Manual", false, 1)]
         static public void HelpUserManual()
         {
-            Application.OpenURL("http://www.pixelcrushers.com/dialogue_system/manual/html/");
+            Application.OpenURL("http://www.pixelcrushers.com/dialogue_system/manual2x/html/");
         }
 
         [MenuItem("Tools/Pixel Crushers/Dialogue System/Help/Video Tutorials", false, 1)]
@@ -80,19 +80,19 @@ namespace PixelCrushers.DialogueSystem
         [MenuItem("Tools/Pixel Crushers/Dialogue System/Help/FAQ", false, 3)]
         static public void HelpFAQ()
         {
-            Application.OpenURL("http://www.pixelcrushers.com/dialogue_system/manual/html/faq.html");
+            Application.OpenURL("https://www.pixelcrushers.com/dialogue_system/manual2x/html/faq.html");
         }
 
         [MenuItem("Tools/Pixel Crushers/Dialogue System/Help/Scripting Reference", false, 4)]
         static public void HelpScriptingReference()
         {
-            Application.OpenURL("http://www.pixelcrushers.com/dialogue_system/manual/html/annotated.html");
+            Application.OpenURL("https://www.pixelcrushers.com/dialogue_system/manual2x/html/classes.html");
         }
 
         [MenuItem("Tools/Pixel Crushers/Dialogue System/Help/Release Notes", false, 15)]
         static public void HelpLateReleaseNotes()
         {
-            Application.OpenURL("http://www.pixelcrushers.com/dialogue_system/manual/html/release_notes.html");
+            Application.OpenURL("https://www.pixelcrushers.com/dialogue_system/manual2x/html/release_notes.html");
         }
 
         [MenuItem("Tools/Pixel Crushers/Dialogue System/Help/Late-Breaking News", false, 16)]
@@ -346,6 +346,22 @@ namespace PixelCrushers.DialogueSystem
         static public void ClearQuestTrackerPlayerPrefsKeys()
         {
             PlayerPrefs.DeleteKey("QuestTracker");
+        }
+
+        [MenuItem("Tools/Pixel Crushers/Dialogue System/Tools/Enable TextMesh Pro Support...", false, 100)]
+        static public void AddTMPPRESENT()
+        {
+            if (EditorUtility.DisplayDialog("Enable TextMesh Pro Support", "This will enable the Dialogue System's TextMesh Pro support for the current build platform. Your project must already contain the TextMesh Pro package. To continue, press OK. If you need to install TextMesh Pro first, press Cancel.", "OK", "Cancel"))
+            {
+                MoreEditorUtility.TryAddScriptingDefineSymbols("TMP_PRESENT");
+                EditorUtility.DisplayDialog("TextMesh Pro Support Enabled", "TextMesh Pro support has been enabled for the current build platform. You may need to right-click on the two files named TextMeshProTypewriterEffect and select Reimport to be able to add them to your GameObjects. If you change build platforms, you may need to select this menu item again.", "OK");
+            }
+        }
+
+        [MenuItem("Tools/Pixel Crushers/Dialogue System/Tools/Enable TextMesh Pro Support...", true)]
+        static bool ValidateAddTMPPRESENT()
+        {
+            return !MoreEditorUtility.DoesScriptingDefineSymbolExist("TMP_PRESENT");
         }
 
         #endregion

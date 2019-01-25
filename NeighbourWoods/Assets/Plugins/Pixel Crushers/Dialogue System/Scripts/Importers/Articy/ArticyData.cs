@@ -1,5 +1,5 @@
 ﻿#if USE_ARTICY
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections.Generic;
@@ -485,6 +485,7 @@ namespace PixelCrushers.DialogueSystem.Articy
         public Dictionary<string, Condition> conditions = new Dictionary<string, Condition>();
         public Dictionary<string, Instruction> instructions = new Dictionary<string, Instruction>();
         public Dictionary<string, VariableSet> variableSets = new Dictionary<string, VariableSet>();
+        public List<string> textTableFields = new List<string>();
         public Hierarchy hierarchy = new Hierarchy();
 
         public string ProjectTitle { get { return project.displayName; } }

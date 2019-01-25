@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections.Generic;
@@ -160,6 +160,20 @@ namespace PixelCrushers.DialogueSystem
                 m_currentPanel = panel;
                 panel.SetPCPortrait(m_pcPortraitTexture, m_pcPortraitName);
                 panel.ShowResponses(lastSubtitle, responses, target);
+            }
+        }
+
+        /// <summary>
+        /// Makes the current menu panel's buttons non-clickable.
+        /// Typically called by the dialogue UI as soon as a button has been
+        /// clicked to make sure the player can't click another one while the
+        /// menu is playing its hide animation.
+        /// </summary>
+        public virtual void MakeButtonsNonclickable()
+        {
+            if (m_currentPanel != null)
+            {
+                m_currentPanel.MakeButtonsNonclickable();
             }
         }
 

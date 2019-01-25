@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEngine.Events;
@@ -85,6 +85,9 @@ namespace PixelCrushers.DialogueSystem
         public UnityEvent onClose = new UnityEvent();
         public UnityEvent onContentChanged = new UnityEvent();
 
+        [Tooltip("Add an EventSystem if one isn't in the scene.")]
+        public bool addEventSystemIfNeeded = true;
+
         /// <summary>
         /// This handler is called if the player confirms abandonment of a quest.
         /// </summary>
@@ -119,7 +122,7 @@ namespace PixelCrushers.DialogueSystem
         /// </summary>
         public virtual void Start()
         {
-            UITools.RequireEventSystem();
+            if (addEventSystemIfNeeded) UITools.RequireEventSystem();
             Tools.SetGameObjectActive(mainPanel, false);
             Tools.SetGameObjectActive(abandonPopup, false);
             Tools.SetGameObjectActive(questGroupTemplate, false);

@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEditor;
@@ -218,6 +218,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             if (!(variableReorderableList != null && 0 <= index && index < variableReorderableList.count)) return;
             var variable = variableReorderableList.list[index] as Variable;
             if (variable == null) return;
+            var nameControl = "VarName" + index;
+            var descriptionControl = "VarDescription" + index;
             if (!variable.FieldExists("Initial Value")) variable.fields.Add(new Field("Initial Value", string.Empty, FieldType.Text));
             if (!variable.FieldExists("Description")) variable.fields.Add(new Field("Description", string.Empty, FieldType.Text));
             var initialValueField = Field.Lookup(variable.fields, "Initial Value");
@@ -230,12 +232,19 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             var conflicted = conflictedVariableNames.Contains(variableName);
             if (conflicted) GUI.backgroundColor = Color.red;
             EditorGUI.BeginChangeCheck();
+            GUI.SetNextControlName(nameControl);
             variable.Name = EditorGUI.TextField(new Rect(rect.x, rect.y + 2, fieldWidth, EditorGUIUtility.singleLineHeight), variableName);
             if (EditorGUI.EndChangeCheck()) ResetFilteredVariableList();
             if (conflicted) GUI.backgroundColor = originalColor;
             initialValueField.value = CustomFieldTypeService.DrawField(new Rect(rect.x + fieldWidth + 2, rect.y + 2, fieldWidth, EditorGUIUtility.singleLineHeight), initialValueField, database);
+            GUI.SetNextControlName(descriptionControl);
             descriptionField.value = EditorGUI.TextField(new Rect(rect.x + 2 * (fieldWidth + 2), rect.y + 2, fieldWidth, EditorGUIUtility.singleLineHeight), descriptionField.value);
             CustomFieldTypeService.DrawFieldType(new Rect(rect.x + 3 * (fieldWidth + 2), rect.y + 2, typeWidth, EditorGUIUtility.singleLineHeight), initialValueField);
+            var focusedControl = GUI.GetNameOfFocusedControl();
+            if (string.Equals(nameControl, focusedControl) || string.Equals(descriptionControl, focusedControl))
+            {
+                inspectorSelection = variable;
+            }
         }
 
         private void OnRemoveVariable(ReorderableList list)

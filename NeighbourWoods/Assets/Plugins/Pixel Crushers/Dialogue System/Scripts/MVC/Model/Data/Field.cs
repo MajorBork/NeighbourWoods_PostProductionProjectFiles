@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections.Generic;
@@ -383,7 +383,7 @@ namespace PixelCrushers.DialogueSystem
         /// </param>
         public static void SetValue(List<Field> fields, string title, float value)
         {
-            SetValue(fields, title, value.ToString(), FieldType.Number);
+            SetValue(fields, title, value.ToString(System.Globalization.CultureInfo.InvariantCulture), FieldType.Number);
         }
 
         /// <summary>
@@ -404,7 +404,7 @@ namespace PixelCrushers.DialogueSystem
         }
 
         /// <summary>
-        /// A static utility method that sets the string bool of a field, if the field exists.
+        /// A static utility method that sets the string bool of a field.
         /// </summary>
         /// <param name='fields'>
         /// A list of fields.

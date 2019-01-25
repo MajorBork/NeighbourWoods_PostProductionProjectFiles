@@ -1,8 +1,7 @@
 ﻿#if USE_ARTICY
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
-using System.Collections.Generic;
 
 namespace PixelCrushers.DialogueSystem.Articy
 {
@@ -13,135 +12,77 @@ namespace PixelCrushers.DialogueSystem.Articy
     [AddComponentMenu("")] // Use wrapper.
     public class ArticyLuaFunctions : MonoBehaviour
     {
+        private static bool s_registered = false;
+
 
         private void OnEnable()
         {
+            if (s_registered) return;
+            s_registered = true;
             Lua.RegisterFunction("getObj", this, SymbolExtensions.GetMethodInfo(() => getObj(string.Empty)));
             Lua.RegisterFunction("getObject", this, SymbolExtensions.GetMethodInfo(() => getObj(string.Empty)));
             Lua.RegisterFunction("getProp", this, SymbolExtensions.GetMethodInfo(() => getProp(string.Empty, string.Empty)));
             Lua.RegisterFunction("setProp", this, SymbolExtensions.GetMethodInfo(() => setProp(string.Empty, string.Empty, default(object))));
         }
 
-        private void OnDisable()
-        {
-            Lua.UnregisterFunction("getObj");
-            Lua.UnregisterFunction("getObject");
-            Lua.UnregisterFunction("getProp");
-            Lua.UnregisterFunction("setProp");
-        }
-
         private void OnConversationLine(Subtitle subtitle)
         {
-            Lua.Run("speaker = Actor_" + subtitle.speakerInfo.id);
-            Lua.Run("self = Actor_" + subtitle.speakerInfo.id);
+            var self = "\"Actor[\\\"" + DialogueLua.StringToTableIndex(subtitle.speakerInfo.nameInDatabase) + "\\\"]\"";
+            Lua.Run("speaker = " + self + "; self = " + self, DialogueDebug.logInfo);
         }
 
         public static string getObj(string objectName)
         {
             var db = DialogueManager.MasterDatabase;
-            var actor = db.GetActor(objectName);
-            if (actor != null) return "Actor_" + actor.id;
-            var item = db.GetItem(objectName);
-            if (item != null) return "Item_" + item.id;
-            var location = db.GetLocation(objectName);
-            if (location != null) return "Location_" + location.id;
-            var conversation = db.GetConversation(objectName);
-            if (conversation != null) return "Conversation_" + conversation.id;
+            var actor = db.actors.Find(x => string.Equals(objectName, x.Name) || string.Equals(objectName, x.LookupValue("Technical Name")) || string.Equals(objectName, x.LookupValue("Articy Id")));
+            if (actor != null) return "Actor[\"" + DialogueLua.StringToTableIndex(actor.Name) + "\"]";
+            var item = db.items.Find(x => string.Equals(objectName, x.Name) || string.Equals(objectName, x.LookupValue("Technical Name")) || string.Equals(objectName, x.LookupValue("Articy Id")));
+            if (item!= null) return "Item[\"" + DialogueLua.StringToTableIndex(item.Name) + "\"]";
+            var location = db.locations.Find(x => string.Equals(objectName, x.Name) || string.Equals(objectName, x.LookupValue("Technical Name")) || string.Equals(objectName, x.LookupValue("Articy Id")));
+            if (location!= null) return "Location[\"" + DialogueLua.StringToTableIndex(location.Name) + "\"]";
+            var conversation = db.conversations.Find(x => string.Equals(objectName, x.Title) || string.Equals(objectName, x.LookupValue("Technical Name")) || string.Equals(objectName, x.LookupValue("Articy Id")));
+            if (conversation != null) return "Conversation[\"" + conversation.id + "\"]";
             return null;
         }
 
         public static object getProp(string objectIdentifier, string propertyName)
         {
-            if (string.IsNullOrEmpty(objectIdentifier) || !objectIdentifier.Contains("_")) return null;
-            var id = Tools.StringToInt(objectIdentifier.Substring(objectIdentifier.IndexOf('_') + 1));
-            var db = DialogueManager.MasterDatabase;
-            if (objectIdentifier.StartsWith("Actor_"))
+            var result = Lua.Run("return " + objectIdentifier + "." + DialogueLua.StringToTableIndex(propertyName), DialogueDebug.logInfo);
+            if (result.isBool)
             {
-                return GetAssetFieldValue(db.GetActor(id), propertyName);
+                return result.asBool;
             }
-            else if (objectIdentifier.StartsWith("Item_"))
+            else if (result.isNumber)
             {
-                return GetAssetFieldValue(db.GetItem(id), propertyName);
-            }
-            else if (objectIdentifier.StartsWith("Location_"))
-            {
-                return GetAssetFieldValue(db.GetLocation(id), propertyName);
-            }
-            else if (objectIdentifier.StartsWith("Conversation_"))
-            {
-                return GetAssetFieldValue(db.GetConversation(id), propertyName);
+                return result.asInt;
             }
             else
             {
-                return null;
+                return result.asString;
             }
         }
 
         public static void setProp(string objectIdentifier, string propertyName, object value)
         {
-            if (string.IsNullOrEmpty(objectIdentifier) || !objectIdentifier.Contains("_")) return;
-            var id = Tools.StringToInt(objectIdentifier.Substring(objectIdentifier.IndexOf('_') + 1));
-            var db = DialogueManager.MasterDatabase;
-            if (objectIdentifier.StartsWith("Actor_"))
-            {
-                SetAssetFieldValue(db.GetActor(id), propertyName, value);
-            }
-            else if (objectIdentifier.StartsWith("Item_"))
-            {
-                SetAssetFieldValue(db.GetItem(id), propertyName, value);
-            }
-            else if (objectIdentifier.StartsWith("Location_"))
-            {
-                SetAssetFieldValue(db.GetLocation(id), propertyName, value);
-            }
-            else if (objectIdentifier.StartsWith("Conversation_"))
-            {
-                SetAssetFieldValue(db.GetConversation(id), propertyName, value);
-            }
-        }
-
-        private static object GetAssetFieldValue(Asset asset, string fieldName)
-        {
-            return (asset != null) ? GetFieldValue(asset.fields, fieldName) : null;
-        }
-
-        private static object GetFieldValue(List<Field> fields, string fieldName)
-        {
-            var field = Field.Lookup(fields, fieldName);
-            if (field == null) return null;
-            switch (field.type)
-            {
-                case FieldType.Boolean:
-                    return Tools.StringToBool(field.value);
-                case FieldType.Number:
-                    return (double)Tools.StringToFloat(field.value);
-                default:
-                    return field.value;
-            }
-        }
-
-        private static void SetAssetFieldValue(Asset asset, string fieldName, object value)
-        {
-            if (asset == null || string.IsNullOrEmpty(fieldName)) return;
-            var field = Field.Lookup(asset.fields, fieldName);
-            if (field == null) return;
+            string rightSide;
             if (value == null)
             {
-                field.value = string.Empty;
-                return;
+                rightSide = "nil";
             }
-            field.value = value.ToString();
-            var valueType = value.GetType();
-            if (valueType == typeof(bool))
+            else if (value.GetType() == typeof(string))
             {
-                field.type = FieldType.Boolean;
+                rightSide = "\"" + value.ToString() + "\"";
             }
-            else if (valueType == typeof(double) || valueType == typeof(float) || valueType == typeof(int))
+            else if (value.GetType() == typeof(bool))
             {
-                field.type = FieldType.Number;
+                rightSide = value.ToString().ToLower();
             }
+            else
+            {
+                rightSide = value.ToString();
+            }
+            Lua.Run(objectIdentifier + "." + propertyName + " = " + rightSide, DialogueDebug.logInfo);
         }
-
     }
 }
 #endif

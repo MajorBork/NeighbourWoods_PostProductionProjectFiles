@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEditor;
@@ -25,6 +25,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             public bool globalReplace = false;
             public bool merge = false;
             public bool export = false;
+            public bool localization = false;
             public bool editorSettings = false;
         }
 
@@ -97,6 +98,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             if (databaseFoldouts.merge) DrawMergeSection();
             databaseFoldouts.export = EditorGUILayout.Foldout(databaseFoldouts.export, new GUIContent("Export Database", "Options to export the database to Chat Mapper XML format."));
             if (databaseFoldouts.export) DrawExportSection();
+            databaseFoldouts.localization = EditorGUILayout.Foldout(databaseFoldouts.localization, new GUIContent("Localization Export/Import", "Options to export and import localization files."));
+            if (databaseFoldouts.localization) DrawLocalizationSection();
             databaseFoldouts.editorSettings = EditorGUILayout.Foldout(databaseFoldouts.editorSettings, new GUIContent("Editor Settings", "Editor settings."));
             if (databaseFoldouts.editorSettings) DrawEditorSettings();
         }

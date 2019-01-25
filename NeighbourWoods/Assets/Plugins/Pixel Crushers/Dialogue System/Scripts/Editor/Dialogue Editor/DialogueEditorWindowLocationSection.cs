@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEditor;
@@ -61,18 +61,27 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         private void DrawLocationListElement(Rect rect, int index, bool isActive, bool isFocused)
         {
             if (!(0 <= index && index < database.locations.Count)) return;
+            var nameControl = "LocationName" + index;
+            var descriptionControl = "LocationDescription" + index;
             var location = database.locations[index];
             EditorGUI.BeginDisabledGroup(!IsAssetInFilter(location, locationFilter));
             var fieldWidth = rect.width / 4;
             var locationName = location.Name;
             EditorGUI.BeginChangeCheck();
+            GUI.SetNextControlName(nameControl);
             locationName = EditorGUI.TextField(new Rect(rect.x, rect.y + 2, fieldWidth, EditorGUIUtility.singleLineHeight), GUIContent.none, locationName);
             if (EditorGUI.EndChangeCheck()) location.Name = locationName;
             var description = location.Description;
             EditorGUI.BeginChangeCheck();
+            GUI.SetNextControlName(descriptionControl);
             description = EditorGUI.TextField(new Rect(rect.x + fieldWidth + 2, rect.y + 2, 3 * fieldWidth - 2, EditorGUIUtility.singleLineHeight), GUIContent.none, description);
             if (EditorGUI.EndChangeCheck()) location.Description = description;
             EditorGUI.EndDisabledGroup();
+            var focusedControl = GUI.GetNameOfFocusedControl();
+            if (string.Equals(nameControl, focusedControl) || string.Equals(descriptionControl, focusedControl))
+            {
+                inspectorSelection = location;
+            }
         }
 
         private void DrawLocationListElementBackground(Rect rect, int index, bool isActive, bool isFocused)

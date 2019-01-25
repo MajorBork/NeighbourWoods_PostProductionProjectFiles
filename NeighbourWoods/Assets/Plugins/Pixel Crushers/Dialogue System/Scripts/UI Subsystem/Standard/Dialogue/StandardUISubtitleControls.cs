@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections.Generic;
@@ -186,7 +186,7 @@ namespace PixelCrushers.DialogueSystem
         #region Show & Hide
 
         /// <summary>
-        /// Shows a subtitle. Opens a sutitle panel and sets the content. If the speaker
+        /// Shows a subtitle. Opens a subtitle panel and sets the content. If the speaker
         /// has a DialogueActor component, this may dictate which panel opens.
         /// </summary>
         /// <param name="subtitle">Subtitle to show.</param>

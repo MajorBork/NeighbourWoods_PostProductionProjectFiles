@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEngine.Events;
@@ -55,6 +55,9 @@ namespace PixelCrushers
 
         [Tooltip("When paused and device is mouse, make sure cursor is visible.")]
         public bool enforceCursorOnPause = false;
+
+        [Tooltip("Enable GraphicRaycasters (which detect cursor clicks on UI elements) only when device is mouse.")]
+        public bool controlGraphicRaycasters = true;
 
         [Tooltip("If any of these keycodes are pressed, go back to the previous menu.")]
         public KeyCode[] backKeyCodes = new KeyCode[] { KeyCode.JoystickButton1 };
@@ -173,6 +176,7 @@ namespace PixelCrushers
 
         private void SetGraphicRaycasters(bool deviceUsesCursor)
         {
+            if (!controlGraphicRaycasters) return;
             var raycasters = FindObjectsOfType<UnityEngine.UI.GraphicRaycaster>();
             for (int i = 0; i < raycasters.Length; i++)
             {

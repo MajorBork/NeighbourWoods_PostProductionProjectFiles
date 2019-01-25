@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -33,6 +33,7 @@ namespace PixelCrushers.DialogueSystem
         public virtual void Assign(string quest, ToggleChangedDelegate trackToggleDelegate)
         {
             if (UITextField.IsNull(label)) label.uiText = button.GetComponentInChildren<UnityEngine.UI.Text>();
+            name = quest;
             label.text = quest;
             var canTrack = QuestLog.IsQuestActive(quest) && QuestLog.IsQuestTrackingAvailable(quest);
             trackToggleTemplate.Assign(canTrack, QuestLog.IsQuestTrackingEnabled(quest), quest, trackToggleDelegate);

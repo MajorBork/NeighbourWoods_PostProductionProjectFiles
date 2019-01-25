@@ -1,5 +1,5 @@
 #if USE_ARTICY
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using System.Collections.Generic;
 using System.IO;
@@ -496,6 +496,10 @@ namespace PixelCrushers.DialogueSystem.Articy
             conversationID++;
             var conversationTitle = string.Empty;
             conversationTitle += articyDialogue.displayName.DefaultText;
+            if (articyDialogue.isDocument && !string.IsNullOrEmpty(prefs.DocumentsSubmenu))
+            {
+                conversationTitle = prefs.DocumentsSubmenu + "/" + conversationTitle;
+            }
             Conversation conversation = template.CreateConversation(conversationID, conversationTitle);
             Field.SetValue(conversation.fields, ArticyIdFieldTitle, articyDialogue.id, FieldType.Text);
             Field.SetValue(conversation.fields, "Description", articyDialogue.text.DefaultText, FieldType.Text);
@@ -983,7 +987,7 @@ namespace PixelCrushers.DialogueSystem.Articy
             jumpEntry.canvasRect = new Rect(jump.position.x, jump.position.y, DialogueEntry.CanvasRectWidth, DialogueEntry.CanvasRectHeight);
             SetFeatureFields(jumpEntry.fields, jump.features);
             ConvertLocalizableText(jumpEntry, "Title", jump.displayName);
-            jumpEntry.isGroup = true;
+            jumpEntry.isGroup = false; // Since groups are processed one level ahead, don't make this a group: jumpEntry.isGroup = true;
             jumpEntry.currentSequence = "None()";
             ConvertPinExpressionsToConditionsAndScripts(jumpEntry, jump.pins);
             RecordPins(jump.pins, jumpEntry);
@@ -1073,9 +1077,10 @@ namespace PixelCrushers.DialogueSystem.Articy
             entry.currentDialogueText = string.Empty;
             entry.currentMenuText = string.Empty;
             entry.currentSequence = "None()";
-            entry.isGroup = true;
+            entry.isGroup = false; // Since groups are processed one level ahead, don't make this a group: entry.isGroup = true;
             entry.conditionsString = string.Empty;
             entry.userScript = AddToUserScript(entry.userScript, ConvertExpression(instruction.expression));
+            ConvertPinExpressionsToConditionsAndScripts(entry, instruction.pins);
             RecordPins(instruction.pins, entry);
         }
 
@@ -1148,6 +1153,28 @@ namespace PixelCrushers.DialogueSystem.Articy
         /// <returns>A Lua version of the expression.</returns>
         /// <param name='expression'>articy expresso expression.</param>
         public static string ConvertExpression(string expression)
+        {
+            if (string.IsNullOrEmpty(expression)) return expression;
+
+            // If already Lua, return it:
+            if (expression.Contains("Variable[")) return expression;
+
+            // If no semicolon, convert single expression:
+            if (!expression.Contains(";")) return ConvertSingleExpression(expression);
+
+            var s = string.Empty;
+            var singleExpressions = expression.Split(';'); // TO DO: Handle semicolons nested inside string literals.
+            for (int i = 0; i < singleExpressions.Length; i++)
+            {
+                var singleExpression = singleExpressions[i];
+                if (string.IsNullOrEmpty(singleExpression)) continue;
+                if (s.Length > 0) s += ";\n";
+                s += ConvertSingleExpression(singleExpression);
+            }
+            return s;
+        }
+
+        public static string ConvertSingleExpression(string expression)
         {
             if (string.IsNullOrEmpty(expression)) return expression;
 

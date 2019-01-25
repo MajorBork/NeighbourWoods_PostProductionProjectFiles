@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEngine.Events;
@@ -67,7 +67,24 @@ namespace PixelCrushers.DialogueSystem
                     if (DialogueManager.instance != null)
                     {
                         m_questStateDispatcher = DialogueManager.instance.GetComponent<QuestStateDispatcher>();
-                        if (m_questStateDispatcher == null) m_questStateDispatcher = DialogueManager.instance.gameObject.AddComponent<QuestStateDispatcher>();
+                        if (m_questStateDispatcher == null)
+                        {
+                            m_questStateDispatcher = FindObjectOfType<QuestStateDispatcher>();
+                            if (m_questStateDispatcher == null)
+                            {
+                                m_questStateDispatcher = DialogueManager.instance.gameObject.AddComponent<QuestStateDispatcher>();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        m_questStateDispatcher = FindObjectOfType<QuestStateDispatcher>();
+                        if (m_questStateDispatcher == null)
+                        {
+                            var go = new GameObject("QuestStateDispatcher");
+                            DontDestroyOnLoad(go);
+                            m_questStateDispatcher = go.AddComponent<QuestStateDispatcher>();
+                        }
                     }
                 }
                 return m_questStateDispatcher;
@@ -89,6 +106,11 @@ namespace PixelCrushers.DialogueSystem
             set { m_started = value; }
         }
 
+        void OnApplicationQuit()
+        {
+            enabled = false;
+        }
+
         IEnumerator Start()
         {
             yield return null;
@@ -96,7 +118,14 @@ namespace PixelCrushers.DialogueSystem
             {
                 if (DialogueDebug.logInfo) Debug.Log("Dialogue System: " + name + ": Listening for state changes to quest '" + questName + "'.", this);
                 started = true;
-                questStateDispatcher.AddListener(this);
+                if (questStateDispatcher == null)
+                {
+                    if (DialogueDebug.logErrors) Debug.LogWarning("Dialogue System: Unexpected error. Quest State Listener on " + name + " can't find or create a Quest State Dispatcher.", this);
+                }
+                else
+                {
+                    questStateDispatcher.AddListener(this);
+                }
                 UpdateIndicator();
             }
         }
@@ -108,7 +137,7 @@ namespace PixelCrushers.DialogueSystem
 
         void OnDisable()
         {
-            if (questStateDispatcher != null) questStateDispatcher.RemoveListener(this);
+            if (m_questStateDispatcher != null) m_questStateDispatcher.RemoveListener(this); // Use private; don't create new quest state dispatcher.
         }
 
         public void OnChange()

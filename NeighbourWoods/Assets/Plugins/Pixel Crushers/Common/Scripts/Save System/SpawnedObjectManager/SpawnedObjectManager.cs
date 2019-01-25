@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System;
@@ -103,11 +103,11 @@ namespace PixelCrushers
                 if (spawnedObjectData == null) continue;
                 var prefab = GetSpawnedObjectPrefab(spawnedObjectData.prefabName);
                 if (prefab == null) continue;
-                Instantiate(prefab, spawnedObjectData.position, Quaternion.identity);
+                Instantiate(prefab, spawnedObjectData.position, spawnedObjectData.rotation);
             }
         }
 
-        private SpawnedObject GetSpawnedObjectPrefab(string prefabName)
+        protected SpawnedObject GetSpawnedObjectPrefab(string prefabName)
         {
             return m_spawnedObjectPrefabs.Find(x => x != null && string.Equals(x.name, prefabName));
         }

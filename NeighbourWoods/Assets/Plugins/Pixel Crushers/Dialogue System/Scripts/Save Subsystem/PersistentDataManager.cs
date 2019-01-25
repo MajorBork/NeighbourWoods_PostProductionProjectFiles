@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Text;
@@ -71,6 +71,11 @@ namespace PixelCrushers.DialogueSystem
         /// Initialize variables that were added to database after saved game.")]
         /// </summary>
         public static bool initializeNewVariables = true;
+
+        /// <summary>
+        /// Initialize new SimStatus values for entries that were added to database after saved game.
+        /// </summary>
+        public static bool initializeNewSimStatus = true;
 
         /// <summary>
         /// PersistentDataManager will call this delegate (if set) to add custom data
@@ -217,7 +222,12 @@ namespace PixelCrushers.DialogueSystem
             Lua.Run(saveData, DialogueDebug.logInfo);
             ExpandCompressedSimStatusData();
             RefreshRelationshipAndStatusTablesFromLua();
-            if (initializeNewVariables) InitializeNewVariablesFromDatabase();
+            if (initializeNewVariables)
+            {
+                InitializeNewVariablesFromDatabase();
+                InitializeNewQuestEntriesFromDatabase();
+                if (includeSimStatus) InitializeNewSimStatusFromDatabase();
+            }
             Apply();
         }
 
@@ -369,12 +379,27 @@ namespace PixelCrushers.DialogueSystem
 
         }
 
-        private static Regex matchValidVarName = new Regex("^[a-zA-Z_][a-zA-Z0-9_]*$");
+        // Faster to check manually than use Regex:
+        // private static Regex matchValidVarName = new Regex("^[a-zA-Z_][a-zA-Z0-9_]*$");
 
         private static string GetFieldKeyString(string key)
         {
             key = DialogueLua.StringToTableIndex(key);
-            return matchValidVarName.IsMatch(key) ? key : ("[\"" + key + "\"]");
+            return IsValidVarName(key) ? key : ("[\"" + key + "\"]");
+            //---Was: return matchValidVarName.IsMatch(key) ? key : ("[\"" + key + "\"]");
+        }
+
+        private static bool IsValidVarName(string key)
+        {
+            if (string.IsNullOrEmpty(key)) return false;
+            char firstChar = key[0];
+            if (!(firstChar == '_' || ('a' <= firstChar && firstChar <= 'z') || ('A' <= firstChar && firstChar <= 'Z'))) return false;
+            for (int i = 1; i < key.Length; i++)
+            {
+                var c = key[i];
+                if (!(c == '_' || ('a' <= c && c <= 'z') || ('A' <= c && c <= 'Z') || ('0' <= c && c <= '9'))) return false;
+            }
+            return true;
         }
 
         private static string GetFieldValueString(object o)
@@ -508,81 +533,9 @@ namespace PixelCrushers.DialogueSystem
             {
                 AppendAllConversationFields(sb);
             }
-            if (!(includeSimStatus && DialogueManager.instance.includeSimStatus)) return;
-            try
+            if (includeSimStatus && DialogueManager.instance.includeSimStatus)
             {
-#if USE_NLUA
-                var useConversationID = string.IsNullOrEmpty(saveConversationSimStatusWithField);
-                var useEntryID = string.IsNullOrEmpty(saveDialogueEntrySimStatusWithField);
-                foreach (var conversation in DialogueManager.MasterDatabase.conversations)
-                {
-                    if (useConversationID)
-                    {
-                        sb.AppendFormat("Conversation[{0}].SimX=\"", conversation.id);
-                    }
-                    else
-                    {
-                        var fieldValue = DialogueLua.StringToTableIndex(conversation.LookupValue(saveConversationSimStatusWithField));
-                        if (string.IsNullOrEmpty(fieldValue)) fieldValue = conversation.id.ToString();
-                        sb.AppendFormat("Variable[\"Conversation_SimX_{0}\"]=\"", fieldValue);
-                    }
-                    var dialogTable = Lua.Run("return Conversation[" + conversation.id + "].Dialog").AsLuaTable;
-                    var first = true;
-                    for (int i = 0; i < conversation.dialogueEntries.Count; i++)
-                    {
-                        var entry = conversation.dialogueEntries[i];
-                        var entryID = entry.id;
-                        var dialogFields = dialogTable[entryID] as NLua.LuaTable;
-                        if (dialogFields != null)
-                        {
-                            if (!first) sb.Append(";");
-                            first = false;
-                            sb.Append(useEntryID ? entryID.ToString() : Field.LookupValue(entry.fields, saveDialogueEntrySimStatusWithField));
-                            sb.Append(";");
-                            var simStatus = dialogFields["SimStatus"].ToString();
-                            sb.Append(SimStatusToChar(simStatus));
-                        }
-                    }
-                    sb.Append("\"; ");
-                }
-#else
-                var useConversationID = string.IsNullOrEmpty(saveConversationSimStatusWithField);
-                var useEntryID = string.IsNullOrEmpty(saveDialogueEntrySimStatusWithField);
-                foreach (var conversation in DialogueManager.masterDatabase.conversations)
-                {
-                    if (useConversationID)
-                    {
-                        sb.AppendFormat("Conversation[{0}].SimX=\"", conversation.id);
-                    }
-                    else
-                    {
-                        sb.AppendFormat("Variable[\"Conversation_SimX_{0}\"]=\"", DialogueLua.StringToTableIndex(conversation.LookupValue(saveConversationSimStatusWithField)));
-                    }
-                    var conversationTable = Lua.Run("return Conversation[" + conversation.id + "]").asTable;
-                    var dialogTable = conversationTable.luaTable.GetValue("Dialog") as Language.Lua.LuaTable;
-                    var first = true;
-                    for (int i = 0; i < conversation.dialogueEntries.Count; i++)
-                    {
-                        var entry = conversation.dialogueEntries[i];
-                        var entryID = entry.id;
-                        var dialogFields = dialogTable.GetValue(entryID) as Language.Lua.LuaTable;
-                        if (dialogFields != null)
-                        {
-                            if (!first) sb.Append(";");
-                            first = false;
-                            sb.Append(useEntryID ? entryID.ToString() : Field.LookupValue(entry.fields, saveDialogueEntrySimStatusWithField));
-                            sb.Append(";");
-                            var simStatus = dialogFields.GetValue("SimStatus").ToString();
-                            sb.Append(SimStatusToChar(simStatus));
-                        }
-                    }
-                    sb.Append("\"; ");
-                }
-#endif
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError(string.Format("{0}: GetSaveData() failed to get conversation data: {1}", new System.Object[] { DialogueDebug.Prefix, e.Message }));
+                AppendSimStatus(sb);
             }
         }
 
@@ -630,15 +583,64 @@ namespace PixelCrushers.DialogueSystem
             }
         }
 
+#if USE_NLUA
+
+        /// <summary>
+        /// Appends SimStatus for all conversations.
+        /// </summary>
+        private static void AppendSimStatus(StringBuilder sb)
+        { 
+            try
+            {
+                var useConversationID = string.IsNullOrEmpty(saveConversationSimStatusWithField);
+                var useEntryID = string.IsNullOrEmpty(saveDialogueEntrySimStatusWithField);
+                foreach (var conversation in DialogueManager.MasterDatabase.conversations)
+                {
+                    if (useConversationID)
+                    {
+                        sb.AppendFormat("Conversation[{0}].SimX=\"", conversation.id);
+                    }
+                    else
+                    {
+                        var fieldValue = DialogueLua.StringToTableIndex(conversation.LookupValue(saveConversationSimStatusWithField));
+                        if (string.IsNullOrEmpty(fieldValue)) fieldValue = conversation.id.ToString();
+                        sb.AppendFormat("Variable[\"Conversation_SimX_{0}\"]=\"", fieldValue);
+                    }
+                    var dialogTable = Lua.Run("return Conversation[" + conversation.id + "].Dialog").AsLuaTable;
+                    var first = true;
+                    for (int i = 0; i < conversation.dialogueEntries.Count; i++)
+                    {
+                        var entry = conversation.dialogueEntries[i];
+                        var entryID = entry.id;
+                        var dialogFields = dialogTable[entryID] as NLua.LuaTable;
+                        if (dialogFields != null)
+                        {
+                            if (!first) sb.Append(";");
+                            first = false;
+                            sb.Append(useEntryID ? entryID.ToString() : Field.LookupValue(entry.fields, saveDialogueEntrySimStatusWithField));
+                            sb.Append(";");
+                            var simStatus = dialogFields["SimStatus"].ToString();
+                            sb.Append(SimStatusToChar(simStatus));
+                        }
+                    }
+                    sb.Append("\"; ");
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError(string.Format("{0}: GetSaveData() failed to get conversation data: {1}", new System.Object[] { DialogueDebug.Prefix, e.Message }));
+            }
+        }
+
         private static void ExpandCompressedSimStatusData()
         {
-            if (!(includeSimStatus && DialogueManager.instance.includeSimStatus)) return;
+            if (!(includeSimStatus && DialogueManager.Instance.includeSimStatus)) return;
             try
             {
                 var useConversationID = string.IsNullOrEmpty(saveConversationSimStatusWithField);
                 var useEntryID = string.IsNullOrEmpty(saveDialogueEntrySimStatusWithField);
                 var entryDict = new Dictionary<string, DialogueEntry>();
-                foreach (var conversation in DialogueManager.masterDatabase.conversations)
+                foreach (var conversation in DialogueManager.MasterDatabase.conversations)
                 {
                     // If saving dialogue entries' SimStatus with value of a field, make a lookup table:
                     if (!useEntryID)
@@ -655,13 +657,13 @@ namespace PixelCrushers.DialogueSystem
                     string simX;
                     if (useConversationID)
                     {
-                        simX = Lua.Run("return Conversation[" + conversation.id + "].SimX").asString;
+                        simX = Lua.Run("return Conversation[" + conversation.id + "].SimX").AsString;
                     }
                     else
                     {
                         var fieldValue = DialogueLua.StringToTableIndex(conversation.LookupValue(saveConversationSimStatusWithField));
                         if (string.IsNullOrEmpty(fieldValue)) fieldValue = conversation.id.ToString();
-                        simX = Lua.Run("return Variable[\"Conversation_SimX_" + fieldValue + "\"]").asString;
+                        simX = Lua.Run("return Variable[\"Conversation_SimX_" + fieldValue + "\"]").AsString;
                     }
                     if (string.IsNullOrEmpty(simX) || string.Equals(simX, "nil")) continue;
                     var clearSimXCommand = useConversationID ? ("Conversation[" + conversation.id + "].SimX=nil;")
@@ -701,6 +703,219 @@ namespace PixelCrushers.DialogueSystem
                 Debug.LogError(string.Format("{0}: ApplySaveData() failed to re-expand compressed SimStatus data: {1}", new System.Object[] { DialogueDebug.Prefix, e.Message }));
             }
         }
+
+#else
+
+        // Used by SimStatus methods:
+        private static bool useConversationID = true;
+        private static bool useEntryID = true;
+
+        /// <summary>
+        /// Appends SimStatus for all conversations.
+        /// </summary>
+        private static void AppendSimStatus(StringBuilder sb)
+        { 
+            try
+            {
+                useConversationID = string.IsNullOrEmpty(saveConversationSimStatusWithField);
+                useEntryID = string.IsNullOrEmpty(saveDialogueEntrySimStatusWithField);
+                var conversationTable = Lua.environment.GetValue("Conversation") as Language.Lua.LuaTable;
+                if (conversationTable == null) return;
+                for (int i = 0; i < conversationTable.List.Count; i++)
+                {
+                    var conversationID = i + 1;
+                    var fieldTable = conversationTable.List[i] as Language.Lua.LuaTable;
+                    AppendSimStatusForConversation(sb, conversationTable, conversationID, fieldTable);
+                }
+                foreach (var kvp in conversationTable.Dict)
+                {
+                    if (kvp.Key == null || kvp.Value == null || !(kvp.Value is Language.Lua.LuaTable)) continue;
+                    var conversationID = Tools.StringToInt(kvp.Key.ToString());
+                    var fieldTable = kvp.Value as Language.Lua.LuaTable;
+                    AppendSimStatusForConversation(sb, conversationTable, conversationID, fieldTable);
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError(string.Format("{0}: GetSaveData() failed to get conversation data: {1}", new System.Object[] { DialogueDebug.Prefix, e.Message }));
+            }
+        }
+
+        /// <summary>
+        /// Appends the SimStatus info for a single conversation.
+        /// </summary>
+        /// <returns>Returns the number of dialogue entries in the conversation.</returns>
+        private static int AppendSimStatusForConversation(StringBuilder sb, Language.Lua.LuaTable conversationTable, int conversationID, Language.Lua.LuaTable fieldTable)
+        {
+            if (sb == null || conversationTable == null || fieldTable == null) return 0;
+            var dialogTable = fieldTable.GetValue("Dialog") as Language.Lua.LuaTable;
+            if (dialogTable == null) return 0;
+            var conversation = DialogueManager.masterDatabase.GetConversation(conversationID);
+            if (conversation == null) return 0;
+            if (useConversationID)
+            {
+                sb.AppendFormat("Conversation[{0}].SimX=\"", conversationID);
+            }
+            else
+            {
+                sb.AppendFormat("Variable[\"Conversation_SimX_{0}\"]=\"", DialogueLua.StringToTableIndex(conversation.LookupValue(saveConversationSimStatusWithField)));
+            }
+            var first = true;
+            for (int i = 0; i < dialogTable.List.Count; i++)
+            {
+                var entryID = i + 1;
+                var entryIDString = entryID.ToString();
+                var simStatusTable = dialogTable.List[i] as Language.Lua.LuaTable;
+                if (!first) sb.Append(";");
+                first = false;
+                if (useEntryID)
+                {
+                    sb.Append(entryIDString);
+                }
+                else
+                {
+                    var entry = conversation.GetDialogueEntry(entryID);
+                    var fieldName = (entry != null) ? Field.LookupValue(entry.fields, saveDialogueEntrySimStatusWithField) : entryIDString;
+                    sb.Append(fieldName);
+                }
+                sb.Append(";");
+                var simStatus = simStatusTable.GetValue("SimStatus").ToString();
+                sb.Append(SimStatusToChar(simStatus));
+            }
+            foreach (var kvp2 in dialogTable.KeyValuePairs)
+            {
+                var entryIDString = kvp2.Key.ToString();
+                var entryID = Tools.StringToInt(entryIDString);
+                var simStatusTable = kvp2.Value as Language.Lua.LuaTable;
+                if (!first) sb.Append(";");
+                first = false;
+                if (useEntryID)
+                {
+                    sb.Append(entryIDString);
+                }
+                else
+                {
+                    var entry = conversation.GetDialogueEntry(entryID);
+                    var field = (entry != null) ? Field.Lookup(entry.fields, saveDialogueEntrySimStatusWithField) : null;
+                    var fieldName = (field != null) ? field.value : entryIDString;
+                    sb.Append(fieldName);
+                }
+                sb.Append(";");
+                var simStatus = simStatusTable.GetValue("SimStatus").ToString();
+                sb.Append(SimStatusToChar(simStatus));
+            }
+            sb.Append("\"; ");
+            return conversation.dialogueEntries.Count;
+        }
+
+        /// <summary>
+        /// When reapplying saved data, expands compress SimX info into conversations' SimStatus tables.
+        /// </summary>
+        private static void ExpandCompressedSimStatusData()
+        {
+            if (!(includeSimStatus && DialogueManager.instance.includeSimStatus)) return;
+            try
+            {
+                var luaStringSimX = new Language.Lua.LuaString("SimX");
+                useConversationID = string.IsNullOrEmpty(saveConversationSimStatusWithField);
+                useEntryID = string.IsNullOrEmpty(saveDialogueEntrySimStatusWithField);
+                var conversationTable = Lua.environment.GetValue("Conversation") as Language.Lua.LuaTable;
+                if (conversationTable == null) return;
+                var sb = new StringBuilder();
+                for (int i = 0; i < conversationTable.List.Count; i++)
+                {
+                    var conversationID = i + 1;
+                    var fieldTable = conversationTable.List[i] as Language.Lua.LuaTable;
+                    ExpandSimStatusForConversation(sb, conversationID, conversationID.ToString(), fieldTable, luaStringSimX);
+                }
+                foreach (var kvp in conversationTable.Dict)
+                {
+                    if (kvp.Key == null || kvp.Value == null || !(kvp.Value is Language.Lua.LuaTable)) continue;
+                    var conversationIDString = kvp.Key.ToString();
+                    var conversationID = Tools.StringToInt(conversationIDString);
+                    var fieldTable = kvp.Value as Language.Lua.LuaTable;
+                    ExpandSimStatusForConversation(sb, conversationID, conversationIDString, fieldTable, luaStringSimX);
+                }
+                Lua.Run(sb.ToString());
+
+
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError(string.Format("{0}: ApplySaveData() failed to re-expand compressed SimStatus data: {1}", new System.Object[] { DialogueDebug.Prefix, e.Message }));
+            }
+        }
+
+        /// <summary>
+        /// Expands SimX for a conversation.
+        /// </summary>
+        private static void ExpandSimStatusForConversation(StringBuilder sb, int conversationID, string conversationIDString, Language.Lua.LuaTable fieldTable, Language.Lua.LuaString luaStringSimX)
+        {
+            var dialogTable = fieldTable.GetValue("Dialog") as Language.Lua.LuaTable;
+            if (dialogTable == null)
+            {
+                dialogTable = new Language.Lua.LuaTable();
+                fieldTable.AddRaw("Dialog", dialogTable);
+            }
+            dialogTable.List.Clear();
+            dialogTable.Dict.Clear();
+            var conversation = DialogueManager.masterDatabase.GetConversation(conversationID);
+            if (conversation == null) return;
+
+            string simX;
+            if (useConversationID)
+            {
+                var simXLuaValue = fieldTable.GetValue(luaStringSimX);
+                if (simXLuaValue == null) return;
+                simX = simXLuaValue.ToString();
+                sb.AppendFormat("Conversation[{0}].SimX=nil;", conversationIDString);
+            }
+            else
+            {
+                var fieldValue = DialogueLua.StringToTableIndex(conversation.LookupValue(saveConversationSimStatusWithField));
+                if (string.IsNullOrEmpty(fieldValue)) fieldValue = conversation.id.ToString();
+                simX = Lua.Run("return Variable[\"Conversation_SimX_" + fieldValue + "\"]").asString;
+                sb.Append("Variable[\"Conversation_SimX_" + fieldValue + "\"]=nil;");
+            }
+            if (string.IsNullOrEmpty(simX) || string.Equals(simX, "nil")) Debug.Log("ERR " + conversationID); //!!!
+            if (string.IsNullOrEmpty(simX) || string.Equals(simX, "nil")) return;
+
+            var simXFields = simX.Split(';');
+            var numFields = simXFields.Length / 2;
+
+            Dictionary<string, int> simStatusFieldValueToID = null;
+            if (!useEntryID)
+            {
+                simStatusFieldValueToID = new Dictionary<string, int>();
+                for (int i = 0; i < conversation.dialogueEntries.Count; i++)
+                {
+                    var entry = conversation.dialogueEntries[i];
+                    var field = (entry != null) ? Field.Lookup(entry.fields, saveDialogueEntrySimStatusWithField) : null;
+                    simStatusFieldValueToID[(field != null) ? field.value : entry.id.ToString()] = entry.id;
+                }
+            }
+
+            for (int i = 0; i < numFields; i++)
+            {
+                var simXEntryIDValue = simXFields[2 * i];
+                var simStatus = CharToSimStatus(simXFields[(2 * i) + 1][0]);
+                var simStatusTable = new Language.Lua.LuaTable();
+                simStatusTable.AddRaw("SimStatus", new Language.Lua.LuaString(simStatus));
+                if (useEntryID)
+                {
+                    dialogTable.AddRaw(Tools.StringToInt(simXEntryIDValue), simStatusTable);
+                }
+                else
+                {
+                    if (simStatusFieldValueToID.ContainsKey(simXEntryIDValue))
+                    {
+                        dialogTable.AddRaw(simStatusFieldValueToID[simXEntryIDValue], simStatusTable);
+                    }
+                }
+            }
+        }
+
+#endif
 
         private static char SimStatusToChar(string simStatus)
         {
@@ -805,6 +1020,92 @@ namespace PixelCrushers.DialogueSystem
             catch (System.Exception e)
             {
                 Debug.LogError(string.Format("{0}: InitializeNewVariablesFromDatabase() failed to get variable data: {1}", new System.Object[] { DialogueDebug.Prefix, e.Message }));
+            }
+        }
+
+        /// <summary>
+        /// Instructs the Dialogue System to add any missing quest entries that are in the master 
+        /// database but not in Lua.
+        /// </summary>
+        public static void InitializeNewQuestEntriesFromDatabase()
+        {
+            try
+            {
+                var luaCode = string.Empty;
+                var database = DialogueManager.MasterDatabase;
+                if (database == null) return;
+                for (int i = 0; i < database.items.Count; i++)
+                {
+                    if (database.items[i].IsItem) continue;
+                    var dbQuest = database.items[i];
+                    var questName = dbQuest.Name;
+                    var dbEntryCount = dbQuest.LookupInt("Entry Count");
+                    var luaEntryCount = DialogueLua.GetQuestField(questName, "Entry Count").AsInt;
+                    if (luaEntryCount < dbEntryCount)
+                    {
+                        luaCode += "Item[\"" + DialogueLua.StringToTableIndex(questName) + "\"].Entry_Count=" + dbEntryCount + "; ";
+                        for (int j = 0; j < dbQuest.fields.Count; j++)
+                        {
+                            var field = dbQuest.fields[j];
+                            if (field.title.StartsWith("Entry ") && !field.title.EndsWith(" Count"))
+                            {
+                                luaCode += "Item[\"" + DialogueLua.StringToTableIndex(questName) + "\"]." +
+                                    DialogueLua.StringToTableIndex(field.title) + " = " +
+                                    DialogueLua.ValueAsString(field.type, field.value) + "; ";
+                            }
+                        }
+                    }
+                    Lua.Run(luaCode);
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError(string.Format("{0}: InitializeNewQuestEntriesFromDatabase() failed to get quest data: {1}", new System.Object[] { DialogueDebug.Prefix, e.Message }));
+            }
+        }
+
+        /// <summary>
+        /// Initializes SimStatus for entries that were added to the database after the saved game.
+        /// </summary>
+        public static void InitializeNewSimStatusFromDatabase()
+        {
+            if (!(includeSimStatus && initializeNewSimStatus)) return;
+            try
+            {
+                var database = DialogueManager.MasterDatabase;
+                if (database == null) return;
+                var missingConversations = new List<Conversation>();
+                var fakeLoadedDatabases = new List<DialogueDatabase>();
+                var luaCode = string.Empty;
+                for (int i = 0; i < database.conversations.Count; i++)
+                {
+                    var conversation = database.conversations[i];
+                    var convTableIdent = "Conversation[" + conversation.id + "]";
+                    var convTable = Lua.Run("return " + convTableIdent).AsTable;
+                    if (!convTable.IsValid)
+                    {
+                        missingConversations.Add(conversation);
+                    }
+                    else
+                    {
+                        for (int j = 0; j < conversation.dialogueEntries.Count; j++)
+                        {
+                            var entry = conversation.dialogueEntries[j];
+                            var dialogTableIdent = convTableIdent + ".Dialog[" + entry.id + "]";
+                            var entryTable = Lua.Run("return " + dialogTableIdent).AsTable;
+                            if (!entryTable.IsValid)
+                            {
+                                luaCode += dialogTableIdent + "={SimStatus=\"Untouched\"}; ";
+                            }
+                        }
+                    }
+                }
+                Lua.Run(luaCode, DialogueDebug.LogInfo);
+                DialogueLua.AddToConversationTable(missingConversations, fakeLoadedDatabases);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("Dialogue System: InitializeNewSimStatusFromDatabase() failed: " + e.Message);
             }
         }
 
@@ -942,50 +1243,32 @@ namespace PixelCrushers.DialogueSystem
                     sb.Append("\"; ");
                 }
 #else
-                var useConversationID = string.IsNullOrEmpty(saveConversationSimStatusWithField);
-                var useEntryID = string.IsNullOrEmpty(saveDialogueEntrySimStatusWithField);
-                foreach (var conversation in DialogueManager.masterDatabase.conversations)
+                useConversationID = string.IsNullOrEmpty(saveConversationSimStatusWithField);
+                useEntryID = string.IsNullOrEmpty(saveDialogueEntrySimStatusWithField);
+                var conversationTable = Lua.environment.GetValue("Conversation") as Language.Lua.LuaTable;
+                if (conversationTable == null) yield break;
+                for (int i = 0; i < conversationTable.List.Count; i++)
                 {
-                    if (useConversationID)
+                    var conversationID = i + 1;
+                    var fieldTable = conversationTable.List[i] as Language.Lua.LuaTable;
+                    count += AppendSimStatusForConversation(sb, conversationTable, conversationID, fieldTable);
+                    if (count >= asyncDialogueEntryBatchSize)
                     {
-                        sb.AppendFormat("Conversation[{0}].SimX=\"", conversation.id);
+                        count = 0;
+                        yield return null;
                     }
-                    else
+                }
+                foreach (var kvp in conversationTable.Dict)
+                {
+                    if (kvp.Key == null || kvp.Value == null || !(kvp.Value is Language.Lua.LuaTable)) continue;
+                    var conversationID = Tools.StringToInt(kvp.Key.ToString());
+                    var fieldTable = kvp.Value as Language.Lua.LuaTable;
+                    count += AppendSimStatusForConversation(sb, conversationTable, conversationID, fieldTable);
+                    if (count >= asyncDialogueEntryBatchSize)
                     {
-                        sb.AppendFormat("Variable[\"Conversation_SimX_{0}\"]=\"", DialogueLua.StringToTableIndex(conversation.LookupValue(saveConversationSimStatusWithField)));
+                        count = 0;
+                        yield return null;
                     }
-                    var conversationTable = Lua.Run("return Conversation[" + conversation.id + "]").asTable;
-                    var dialogTable = conversationTable.luaTable.GetValue("Dialog") as Language.Lua.LuaTable;
-                    var first = true;
-                    for (int i = 0; i < conversation.dialogueEntries.Count; i++)
-                    {
-                        try
-                        {
-                            var entry = conversation.dialogueEntries[i];
-                            var entryID = entry.id;
-                            var dialogFields = dialogTable.GetValue(entryID) as Language.Lua.LuaTable;
-                            if (dialogFields != null)
-                            {
-                                if (!first) sb.Append(";");
-                                first = false;
-                                sb.Append(useEntryID ? entryID.ToString() : Field.LookupValue(entry.fields, saveDialogueEntrySimStatusWithField));
-                                sb.Append(";");
-                                var simStatus = dialogFields.GetValue("SimStatus").ToString();
-                                sb.Append(SimStatusToChar(simStatus));
-                            }
-                        }
-                        catch (System.Exception e)
-                        {
-                            Debug.LogError(string.Format("{0}: GetSaveData() failed to get conversation data: {1}", new System.Object[] { DialogueDebug.Prefix, e.Message }));
-                        }
-                        count++;
-                        if (count >= asyncDialogueEntryBatchSize)
-                        {
-                            count = 0;
-                            yield return null;
-                        }
-                    }
-                    sb.Append("\"; ");
                 }
 #endif
             }

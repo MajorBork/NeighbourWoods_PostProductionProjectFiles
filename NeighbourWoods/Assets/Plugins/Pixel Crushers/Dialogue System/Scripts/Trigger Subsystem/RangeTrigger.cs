@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEngine.Events;
@@ -60,6 +60,8 @@ namespace PixelCrushers.DialogueSystem
             if (condition.IsTrue(other.transform)) SetTargets(false);
         }
 
+#if USE_PHYSICS2D || !UNITY_2018_1_OR_NEWER
+
         /// <summary>
         /// Activates the target game objects and components if the condition is true.
         /// </summary>
@@ -81,6 +83,8 @@ namespace PixelCrushers.DialogueSystem
         {
             if (condition.IsTrue(other.transform)) SetTargets(false);
         }
+
+#endif
 
         /// <summary>
         /// Sets the targets active/inactive. Colliders and Renderers aren't MonoBehaviours, so we

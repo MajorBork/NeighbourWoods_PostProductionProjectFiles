@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 #if !(USE_NLUA || OVERRIDE_LUA)
 using UnityEngine;
@@ -27,7 +27,7 @@ namespace PixelCrushers.DialogueSystem
             public Result(Language.Lua.LuaValue luaValue)
             {
                 this.luaValue = luaValue;
-                this.luaTableWrapper = new LuaTableWrapper(luaValue as Language.Lua.LuaTable);
+                this.luaTableWrapper = null;
             }
 
             public bool hasReturnValue { get { return luaValue != null; } }
@@ -35,7 +35,7 @@ namespace PixelCrushers.DialogueSystem
             public bool asBool { get { return (hasReturnValue && (luaValue is Language.Lua.LuaBoolean)) ? (luaValue as Language.Lua.LuaBoolean).BoolValue : string.Compare(asString, "True", StringComparison.OrdinalIgnoreCase) == 0; } }
             public float asFloat { get { return hasReturnValue ? Tools.StringToFloat(luaValue.ToString()) : 0; } }
             public int asInt { get { return hasReturnValue ? Tools.StringToInt(luaValue.ToString()) : 0; } }
-            public LuaTableWrapper asTable { get { return luaTableWrapper; } }
+            public LuaTableWrapper asTable { get { if (luaTableWrapper == null) luaTableWrapper = new LuaTableWrapper(luaValue as Language.Lua.LuaTable); return luaTableWrapper; } }
 
             public bool isString { get { return hasReturnValue && luaValue is Language.Lua.LuaString; } }
             public bool isBool { get { return hasReturnValue && luaValue is Language.Lua.LuaBoolean; } }

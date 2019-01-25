@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System;
@@ -213,6 +213,12 @@ namespace PixelCrushers.DialogueSystem
             }
 
             DialogueManager.SendUpdateTracker();
+
+            if (once)
+            {
+                StopObserving();
+                enabled = false;
+            }
         }
     }
 

@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections.Generic;
@@ -136,7 +136,7 @@ namespace PixelCrushers.DialogueSystem
             Add(defaultDatabase);
             foreach (DialogueDatabase database in previousLoadedDatabases)
             {
-                Add(database);
+                if (database != defaultDatabase) Add(database);
             }
         }
 

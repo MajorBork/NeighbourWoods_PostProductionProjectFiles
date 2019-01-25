@@ -78,19 +78,9 @@ namespace PixelCrushers.DialogueSystem
             CheckOnTriggerExit(other.transform);
         }
 
-        public void OnTriggerExit2D(Collider2D other)
-        {
-            CheckOnTriggerExit(other.transform);
-        }
-
         public void OnCollisionEnter(Collision collision)
         {
             if (enabled && (trigger == DialogueTriggerEvent.OnCollisionEnter)) TryStartConversation(collision.collider.transform);
-        }
-
-        public void OnCollisionEnter2D(Collision2D collision)
-        {
-            if (enabled && (trigger == DialogueTriggerEvent.OnTriggerEnter)) TryStartConversation(collision.collider.transform);
         }
 
         public void OnCollisionExit(Collision collision)
@@ -98,10 +88,7 @@ namespace PixelCrushers.DialogueSystem
             if (enabled && (trigger == DialogueTriggerEvent.OnTriggerExit)) TryStartConversation(collision.collider.transform);
         }
 
-        public void OnCollisionExit2D(Collision2D collision)
-        {
-            if (enabled && (trigger == DialogueTriggerEvent.OnTriggerExit)) TryStartConversation(collision.collider.transform);
-        }
+#if USE_PHYSICS2D || !UNITY_2018_1_OR_NEWER
 
         public void OnTriggerEnter2D(Collider2D other)
         {
@@ -110,6 +97,23 @@ namespace PixelCrushers.DialogueSystem
                 if (enabled && (trigger == DialogueTriggerEvent.OnTriggerEnter)) TryStartConversationOnTriggerEnter(other.transform);
             }
         }
+
+        public void OnTriggerExit2D(Collider2D other)
+        {
+            CheckOnTriggerExit(other.transform);
+        }
+
+        public void OnCollisionEnter2D(Collision2D collision)
+        {
+            if (enabled && (trigger == DialogueTriggerEvent.OnTriggerEnter)) TryStartConversation(collision.collider.transform);
+        }
+
+        public void OnCollisionExit2D(Collision2D collision)
+        {
+            if (enabled && (trigger == DialogueTriggerEvent.OnTriggerExit)) TryStartConversation(collision.collider.transform);
+        }
+
+#endif
 
         private void TryStartConversationOnTriggerEnter(Transform otherTransform)
         {

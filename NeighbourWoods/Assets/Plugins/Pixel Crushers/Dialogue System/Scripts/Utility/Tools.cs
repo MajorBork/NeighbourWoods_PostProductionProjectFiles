@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections;
@@ -75,13 +75,11 @@ namespace PixelCrushers.DialogueSystem
         /// </param>
         public static int StringToInt(string s)
         {
-            int result = 0;
-            int.TryParse(s, out result);
-            return result;
+            return SafeConvert.ToInt(s);
         }
 
         /// <summary>
-        /// Converts a string to a float.
+        /// Converts a string to a float, culture invariant (i.e., uses '.' for decimal point).
         /// </summary>
         /// <returns>
         /// The float, or <c>0</c> if the string can't be parsed to a float.
@@ -91,9 +89,7 @@ namespace PixelCrushers.DialogueSystem
         /// </param>
         public static float StringToFloat(string s)
         {
-            float result = 0;
-            float.TryParse(s, out result);
-            return result;
+            return SafeConvert.ToFloat(s);
         }
 
         /// <summary>

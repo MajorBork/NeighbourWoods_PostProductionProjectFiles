@@ -95,6 +95,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
         private bool isLassoing = false;
         private Rect lassoRect = new Rect(0, 0, 0, 0);
 
+        private Rect nodeEditorVisibleRect;
+
         private void DrawConversationSectionNodeStyle()
         {
             if (!(Application.isPlaying && DialogueManager.hasInstance)) currentRuntimeEntry = null;
@@ -115,6 +117,7 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             {
                 _zoomArea = new Rect(0, topOffset, position.width + ((_zoom - 1) * position.width), position.height - topOffset + ((_zoom - 1) * (position.height - topOffset)));
             }
+            nodeEditorVisibleRect = new Rect(canvasScrollPosition.x, canvasScrollPosition.y, position.width / _zoom, position.height / _zoom);
             EditorZoomArea.Begin(_zoom, _zoomArea);
             try
             {
@@ -128,6 +131,9 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
             }
             Handles.color = MajorGridLineColor;
             Handles.DrawLine(new Vector2(0, topOffset), new Vector2(position.width, topOffset));
+
+            // Debugging: EditorGUI.LabelField(new Rect(10, 30, 500, 30), "pos=" + canvasScrollPosition);
+            // Debugging: EditorGUI.LabelField(new Rect(10, 60, 500, 30), "size=" + position.width / _zoom);
 
             // Debugging context menu: GUI.Label(new Rect(8, position.height - 50, 500, 30), "menuPos=" + contextMenuPosition);
         }
@@ -451,6 +457,8 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
 
         private void DrawEntryNode(DialogueEntry entry)
         {
+            if (!nodeEditorVisibleRect.Overlaps(entry.canvasRect)) return; // Skip drawing if not in visible window.
+
             bool isSelected = multinodeSelection.nodes.Contains(entry);
             var nodeColor = GetNodeColor(entry);
             if (entry.id == 0) nodeColor = Styles.Color.Orange;

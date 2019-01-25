@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using System.Collections.Generic;
@@ -12,6 +12,16 @@ namespace PixelCrushers.DialogueSystem.SequencerCommands
     [AddComponentMenu("")] // Hide from menu.
     public class SequencerCommandAudioWWW : SequencerCommand
     {
+
+#if UNITY_2018_1_OR_NEWER
+
+        public void Start()
+        {
+            Debug.Log("Dialogue System: Sequencer: AudioWWW() is deprecated in Unity 2018+.");
+            Stop();
+        }
+
+#else
 
         private enum State { Idle, Loading, Playing }
         private State state = State.Idle;
@@ -154,6 +164,8 @@ namespace PixelCrushers.DialogueSystem.SequencerCommands
         {
             if ((audioSource != null) && audioSource.isPlaying) audioSource.Stop();
         }
+
+#endif
 
     }
 

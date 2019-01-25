@@ -1,4 +1,4 @@
-﻿// Copyright © Pixel Crushers. All rights reserved.
+﻿// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 using UnityEditor;
@@ -307,26 +307,14 @@ namespace PixelCrushers.DialogueSystem.DialogueEditor
 
         private int StringToInt(string s, int defaultValue)
         {
-            try
-            {
-                return System.Convert.ToInt32(s);
-            }
-            catch (FormatException)
-            {
-                return defaultValue;
-            }
+            int result;
+            return int.TryParse(s, out result) ? result : defaultValue;
         }
 
         private float StringToFloat(string s, int defaultValue)
         {
-            try
-            {
-                return (float)System.Convert.ToDouble(s);
-            }
-            catch (FormatException)
-            {
-                return defaultValue;
-            }
+            float result;
+            return float.TryParse(s, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out result) ? result : defaultValue;
         }
 
         private void EditTextField(List<Field> fields, string fieldTitle, string tooltip, bool isTextArea)

@@ -1,4 +1,4 @@
-// Copyright © Pixel Crushers. All rights reserved.
+// Copyright (c) Pixel Crushers. All rights reserved.
 
 using UnityEngine;
 
@@ -50,7 +50,7 @@ namespace PixelCrushers.DialogueSystem.SequencerCommands
             {
                 return FieldType.Boolean;
             }
-            else if (float.TryParse(variableQTEValue, out temp))
+            else if (float.TryParse(variableQTEValue, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out temp))
             {
                 return FieldType.Number;
             }
